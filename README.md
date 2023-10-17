@@ -3,7 +3,7 @@ Undergraduate project at University of Leeds (23/24)
 
 Supervisor: Mantas Mikaitis - https://mmikaitis.github.io/
 
-Supervisee: Rejus Bulevicius - https://github.com/rejus-b
+Supervisee: Rejus Bulevicius - https://github.com/rejus-b/
 
 # Project description 
 An arbitrary-precision library using compiler intrinsics
