@@ -1,6 +1,8 @@
 # UGR_PROJECT_23-24
 Undergraduate project at University of Leeds (23/24)
+
 Supervisor: Mantas Mikaitis - https://mmikaitis.github.io/
+
 Supervisee: Rejus Bulevicius
 
 # Project description 
