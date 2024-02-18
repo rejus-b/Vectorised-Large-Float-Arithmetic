@@ -5,7 +5,7 @@ Supervisor: Mantas Mikaitis - https://mmikaitis.github.io/
 
 Supervisee: Rejus Bulevicius - https://github.com/rejus-b/
 
-Additional guidance : Massimiliano Fasi - https://github.com/mfasi
+Additional guidance: Massimiliano Fasi - https://github.com/mfasi
 
 # Project description 
 Application of compiler intrinsics in floating point arithmetic using GNU MPFR.
@@ -20,4 +20,4 @@ It is built upon the GNU MPFR-4.2.1 library and GMP-6.3.0 library.
 
 Ensure you have these installed beforehand, other versions have not been tested for compatability. 
 
-Since this library aims to use AVX instructions, ensure you have a compatible processor with at least AVX2, some code will require AVX512.
+Since this library aims to use AVX instructions, ensure you have a compatible processor with at least AVX2, some code will require AVX512, the code is also built with the assumption that you have a 64-bit processor. 
