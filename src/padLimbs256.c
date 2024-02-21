@@ -15,14 +15,15 @@
 #include "avxmpfr_utilities.h"
 
 
-mp_limb_t* pad_mpfr_256(mpfr_t mpfrNumber) // Take an input MPFR variable type  
+mp_limb_t* avxmpfr_pad256(mpfr_t mpfrNumber) // Take an input MPFR variable type  
 {
     // This could be a void type and pad the original mpfr_t variable limbs directly or not if we want it to be possible to pad without doing the AVX
     // To properly padd it, we will have to mpn_right shift each limb seperatly, the bits shifted out of the right are in the MSB of the return
     // For 256 bit implementation working under 252 bits there will be 4 assumed spaces of default MPFR padding   
     // Limb 4 in mpfr_d is the most significant limb (MSL) Limb 0 is the least significant limb (LSL) a.k.a. Little Endian
- 
-    mp_limb_t* limbs = (mp_limb_t *)mpfrNumber->_mpfr_d; // Extract the limbs from the mpfrNumber
+
+    // Extract the limbs from the mpfrNumber
+    mp_limb_t* limbs = (mp_limb_t *)mpfrNumber->_mpfr_d;
    
     // Test setting all limbs that can be used, to be used 
     limbs[0] = 0xFFFFFFFFFFFFFFF0;
@@ -38,7 +39,7 @@ mp_limb_t* pad_mpfr_256(mpfr_t mpfrNumber) // Take an input MPFR variable type
 	
 	mpn_rshift(limbs + limbOffset / GMP_NUMB_BITS, limbs + limbOffset / GMP_NUMB_BITS, (PRECISION_256 - precisionOffset + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, 1); 
     }
-
+    
     return limbs; 
 
     /* 
@@ -77,7 +78,7 @@ int main()
     printf(" LIMBS: ");
 
     // Test the padding code	
-    mp_limb_t *limbs = pad_mpfr_256(num);
+    mp_limb_t *limbs = avxmpfr_pad256(num);
    
     print_binary(limbs, PRECISION_256);
 
