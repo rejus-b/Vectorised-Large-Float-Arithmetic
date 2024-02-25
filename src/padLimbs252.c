@@ -15,7 +15,7 @@
 #include "avxmpfr_utilities.h"
 
 
-mp_limb_t* avxmpfr_pad256(mpfr_t mpfrNumber) // Take an input MPFR variable type  
+mp_limb_t* avxmpfr_pad252(mpfr_t mpfrNumber) // Take an input MPFR variable type  
 {
     // This could be a void type and pad the original mpfr_t variable limbs directly or not if we want it to be possible to pad without doing the AVX
     // To properly padd it, we will have to mpn_right shift each limb seperatly, the bits shifted out of the right are in the MSB of the return
@@ -64,13 +64,13 @@ mp_limb_t* avxmpfr_pad256(mpfr_t mpfrNumber) // Take an input MPFR variable type
     */
 }
 
-mp_limb_t* avxmpfr_unpad256(mpfr_t mpfrNumber) // Take an input MPFR variable type  
+mp_limb_t* avxmpfr_unpad252(mpfr_t mpfrNumber) // Take an input MPFR variable type  
 {
     /*
 	Conceptually the reverse of avxmpfr_pad256.
 	Takes a set of limbs in padded format e.g., 0111 0101 and transforms it to an MPFR readable number -> 1111 0100
 
-	Since leftshifting between limbs we want to retain information we cannot use the exact samse algorithm as avxmpfr_pad256.
+	Since leftshifting between limbs we want to retain information we cannot use the exact same algorithm as avxmpfr_pad256.
 	This function uses a combination of bit masks to extract MSBs without padding and shifting to return the correct format.
      */
 
