@@ -30,14 +30,18 @@ mp_limb_t* avxmpfr_pad256(mpfr_t mpfrNumber) // Take an input MPFR variable type
     limbs[1] = 0xFFFFFFFFFFFFFFFF;
     limbs[2] = 0xFFFFFFFFFFFFFFFF;
     limbs[3] = 0xFFFFFFFFFFFFFFFF;
-
+    
     for (int i = 0; i < 4; i++)
     {
-	// Shift everything 1 time per iteration, decreasing from limbs[3...0] to limbs [1...0]
+	// Shift everything 1 time per iteration, decreasing from limbs[3...0] to limbs [1...0] 
+
 	int limbOffset = i * (sizeof(uint64_t));
 	int precisionOffset = i * 64;
 	
 	mpn_rshift(limbs + limbOffset / GMP_NUMB_BITS, limbs + limbOffset / GMP_NUMB_BITS, (PRECISION_256 - precisionOffset + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, 1); 
+
+	// The below implementation can also be used but I did not since it only affects one limb at a time not true shifting across limbs, not that this is technically required
+	// mpn_rshift(limbs + i, limbs + i , 1, 1);
     }
     
     return limbs; 
@@ -54,11 +58,52 @@ mp_limb_t* avxmpfr_pad256(mpfr_t mpfrNumber) // Take an input MPFR variable type
     // Now shift limbs[1...0] right 1 time, leaves one padded 0 in limbs[1] - Make sure to reduce the precision used
     mpn_rshift(limbs + (sizeof(uint64_t) * 2)/GMP_NUMB_BITS, limbs + (sizeof(uint64_t) * 2)/GMP_NUMB_BITS, (PRECISION_256 - 128 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, 1);
     
-    // Now shift limbs[1...0] right 1 time, leaves one padded 0 in limbs[1] - Make sure to reduce the precision used
+    // Now shift limbs[0...0] right 1 time, leaves one padded 0 in limbs[0] - Make sure to reduce the precision used
     mpn_rshift(limbs + (sizeof(uint64_t) * 3)/GMP_NUMB_BITS, limbs + (sizeof(uint64_t) * 3)/GMP_NUMB_BITS, (PRECISION_256 - 192 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, 1);
 			End of example.
     */
 }
+
+mp_limb_t* avxmpfr_unpad256(mpfr_t mpfrNumber) // Take an input MPFR variable type  
+{
+    /*
+	Conceptually the reverse of avxmpfr_pad256.
+	Takes a set of limbs in padded format e.g., 0111 0101 and transforms it to an MPFR readable number -> 1111 0100
+
+	Since leftshifting between limbs we want to retain information we cannot use the exact samse algorithm as avxmpfr_pad256.
+	This function uses a combination of bit masks to extract MSBs without padding and shifting to return the correct format.
+     */
+
+    // Extract the limbs from the mpfrNumber
+    mp_limb_t* limbs = (mp_limb_t *)mpfrNumber->_mpfr_d;
+   
+    // Test setting all bits that can be used, to be used 
+    limbs[0] = 0x7FFFFFFFFFFFFFFF;
+    limbs[1] = 0x7FFFFFFFFFFFFFFF;
+    limbs[2] = 0x7FFFFFFFFFFFFFFF;
+    limbs[3] = 0x7FFFFFFFFFFFFFFF;
+   
+    // Shift limbs[3...3] once to the left leaving a single 0 LSB.
+    mpn_lshift(limbs + 3, limbs + 3, 1, 1);
+
+    // Mask the non-pad MSB of limbs[2...2] to shift into limbs [3...3] and then shift limbs[2...2] over twice leaving two 0 LSBs
+    uint64_t  lsb_mask = limbs[2] | 0x8000000000000000;
+    limbs[3] = limbs[3] | lsb_mask;
+    mpn_lshift(limbs + 2, limbs + 2, 1, 2);
+
+    // Mask the non-pad MSBs of limbs[1...1] to shift into limbs [2...2] and then shift limbs[1...1] over thrice leaving three 0 LSBs
+    lsb_mask = limbs[1] | 0x9000000000000000;
+    limbs[2] = limbs[2] | lsb_mask;
+    mpn_lshift(limbs +1, limbs + 1, 1, 3);
+    
+    // Mask the non-pad MSBs of limbs[0...0] to shift into limbs [1...1] and then shift limbs[0...0] over four times leaving four 0 LSBs
+    lsb_mask = limbs[0] | 0xA000000000000000;
+    limbs[1] = limbs[1] | lsb_mask;
+    mpn_lshift(limbs, limbs, 1, 4);
+    
+    return limbs; 
+}
+
 
 int main()
 {
@@ -66,7 +111,7 @@ int main()
 
     // Test having a fake mpfr number
     mpfr_t num;
-    mpfr_init2(num, 256);
+    mpfr_init2(num, 252);
     
     mpfr_set_d(num, 2.75, MPFR_RNDN);
 
@@ -79,7 +124,12 @@ int main()
 
     // Test the padding code	
     mp_limb_t *limbs = avxmpfr_pad256(num);
-   
+    print_binary(limbs, PRECISION_256);
+
+
+    // Test unpadding code
+    printf("\n\n");
+    limbs = avxmpfr_unpad256(num);
     print_binary(limbs, PRECISION_256);
 
 }
