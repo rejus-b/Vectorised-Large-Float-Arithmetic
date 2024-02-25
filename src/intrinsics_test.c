@@ -3,10 +3,13 @@
 
 /*
     Original proposed code for doing addition in parallel with truncated rounding using AVX2.
-    By Massimiliano Fasi   
-
-    Compile with:
-	gcc -o intrinsics intrinsics_test.c -mavx2 -mfma -O3 -Wextra -Wall -Wpedantic  
+    By Massimiliano Fasi
+	
+	Further updates / configurations.
+	By Rejus Bulevicius
+	
+    Known changes include:
+	Fixing carry propgation and normalisation when a carry bit is encountered.
 */
 
 // Print the contents of a __m256i variable in hex.
@@ -17,6 +20,7 @@ void hexdump_m256i(const __m256i values, const char* name) {
     }
     printf(" = %s\n", name);
 }
+
 
 // Test if a __m256i variable has all bits set to 0.
 int is_all_zeros(__m256i x) {
@@ -38,24 +42,36 @@ __m256i add (const __m256i_u a, const __m256i_u b) {
         if (is_all_zeros(carry))                      // No carries.
             break;
 
+	//break; // Not running any of the carry normalisation code makes the addition work on padded numbers
+	printf("\nI needed to carry\n");
         // Zero out the carry bit.
         result = _mm256_and_si256(result, result_mask);
         // Shift the carry bits to least significant place.
         carry = _mm256_srl_epi64(carry, _mm_cvtsi32_si128(63));
+	hexdump_m256i(carry, "mid-res0");
         // If the most significant limb has a carry, we'll need to normalise at
         // the end. Note that this can only ever happen once if a and b
         // themselves are normalised.
-        normalise = (carry[3] != 0);
+	printf("c0 is : %llx\n", carry[0]);
+	printf("c1 is : %lld\n", carry[1]);
+	printf("c2 is : %lld\n", carry[2]);
+	printf("c3 is : %lld\n", carry[3]);
+
+	hexdump_m256i(carry, "mid-res");
+        normalise = (carry[0] != 0);             /// I personally believe the order here is wrong for carry should be 0 not 3a
 
         // This is how I do the left shift across lanes.
         carry = _mm256_set_epi64x(0x0,
-                                  carry[0],
-                                  carry[1],
-                                  carry[2]);
+                                  carry[3],	// This used to be c[0] .. c[2]
+                                  carry[2],
+                                  carry[1]);
+	hexdump_m256i(carry, "mid-res2");
     }
+
 
     // Normalise the result with truncation.
     if (normalise) {
+    printf("NOrmalised\n");
         // Extract bits to be shifted right across lanes.
         const __m256i_u last_bit_mask = _mm256_set1_epi64x(0x0000000000000001);
         __m256i_u last_bit = _mm256_and_si256(result, last_bit_mask);
@@ -83,10 +99,19 @@ __m256i add (const __m256i_u a, const __m256i_u b) {
 int main () {
 
     __m256i_u a = _mm256_set1_epi64x(0x0FFFFFFFFFFFFFFF);
-    __m256i_u b = _mm256_set1_epi64x(0x0000000000000001);
-    hexdump_m256i(a, "a");
-    hexdump_m256i(b, "b");
+    //__m256i_u b = _mm256_set1_epi64x(0x7FFFFFFFFFFFFFFF);
+    __m256i_u b = _mm256_set_epi64x(0x7FFFFFFFFFFFFFFF,
+				    0x7FFFFFFFFFFFFFFF,
+				    0x7FFFFFFFFFFFFFFF,
+				    0x7000000000000000);
+    printf("b3 is : %llx\n", b[3]);
+
+    //__m256i_u b = _mm256_set1_epi64x(0x0F700000000000001);
+ //   hexdump_m256i(a, "a");
+ //   hexdump_m256i(b, "b");
 
     __m256i_u result = add(a, b);
+    hexdump_m256i(a, "a");
+    hexdump_m256i(b, "b");
     hexdump_m256i(result, "result");
 }
