@@ -16,8 +16,8 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t pr
 	Note precision is not currently implemented
     */
 
-    // First allign the exponents of the numbers to be added 
-    avxmpfr_exp_allign(op1, op2);
+    // First allign the exponents of the numbers to be added and set rop exponent
+    rop->_mpfr_exp = avxmpfr_exp_allign(op1, op2);
 
     // Now pad the limbs of these numbers
     op1->_mpfr_d = avxmpfr_pad252(op1);
@@ -48,11 +48,10 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t pr
      
     // Finally unpad rop
     rop->_mpfr_d = avxmpfr_unpad252(rop);
-
 }
 
-int main() {
-
+int main() 
+{
     mpfr_t number1, number2, result;
 
     // Set the numbers
@@ -73,15 +72,31 @@ int main() {
 //    printf("Exp: %ld \n", (number2)->_mpfr_exp);
  //   limbs = (mp_limb_t *)number2->_mpfr_d; 
   //  print_binary(limbs, PRECISION_256);
-   
 
-    // Test that different exponents are found and alligned when less than or equal to 64
+
+    // I cant even get the default MPFR print to work right now ...
+    printf("\nmpfr_add print results:");
+    //char* result_str = mpfr_get_str(NULL, &result->_mpfr_exp, 10, 0, number1, MPFR_RNDN);
+    //mpfr_printf("%.6Rf", number1);
+   
+    //mpfr_add(result, number1, number2, MPFR_RNDN);
+   // mpfr_printf("%.6Rf", result);
+
+
+  //  mpfr_free_str(result_str);
+
+
     avxmpfr_add(result, number1, number2, MPFR_RNDN, PRECISION_256);
    
     printf("\nAfter avxmpfr_add"); 
-    printf("Exp: %ld \n", (result)->_mpfr_exp);
+    printf("\nExp: %ld \n", mpfr_get_exp(result)); // (result)->_mpfr_exp);
     limbs = (mp_limb_t *)result->_mpfr_d; 
     print_binary(limbs, PRECISION_256);
+
+    printf("\nmpfr_add print results:");
+    //result_str = mpfr_get_str(NULL, &result->_mpfr_exp, 10, 0, result, MPFR_RNDN);
+    //printf("%s", result_str);
+    mpfr_printf("%.256Rf", result);
 
     return 0;
 }

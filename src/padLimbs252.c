@@ -3,7 +3,7 @@
 /*
     This code takes 4 MPFR limbs and changes the spacing to be consistent formatting of having a leading 0 per limb.
     Example of output MPFR limb value using 6 bit number transformed to work with 8 bits.
-    1101 0100 -> 0110 0101 (Where the original 2 LSB 0s are default MPFR type limb padding.
+    1101 01(00) -> (0)110 (0)101 (Where the original 2 LSB 0s are default MPFR type limb padding.
 
     This requires:
 	A number less than or equal to 2^252 to work with 256 bit numbers.
@@ -24,13 +24,15 @@ mp_limb_t* avxmpfr_pad252(mpfr_t mpfrNumber) // Take an input MPFR variable type
 
     // Extract the limbs from the mpfrNumber
     mp_limb_t* limbs = (mp_limb_t *)mpfrNumber->_mpfr_d;
-   
+
+    /*   
     // Test setting all limbs that can be used, to be used 
     limbs[0] = 0xFFFFFFFFFFFFFFF0;
     limbs[1] = 0xFFFFFFFFFFFFFFFF;
     limbs[2] = 0xFFFFFFFFFFFFFFFF;
     limbs[3] = 0xFFFFFFFFFFFFFFFF;
-    
+    */    
+
     for (int i = 0; i < 4; i++)
     {
 	// Shift everything 1 time per iteration, decreasing from limbs[3...0] to limbs [1...0] 
@@ -77,12 +79,14 @@ mp_limb_t* avxmpfr_unpad252(mpfr_t mpfrNumber) // Take an input MPFR variable ty
     // Extract the limbs from the mpfrNumber
     mp_limb_t* limbs = (mp_limb_t *)mpfrNumber->_mpfr_d;
    
+    /*
     // Test setting all bits that can be used, to be used 
     limbs[0] = 0x7FFFFFFFFFFFFFFF;
     limbs[1] = 0x7FFFFFFFFFFFFFFF;
     limbs[2] = 0x7FFFFFFFFFFFFFFF;
     limbs[3] = 0x7FFFFFFFFFFFFFFF;
-   
+    */   
+
     // Shift limbs[3...3] once to the left leaving a single 0 LSB.
     mpn_lshift(limbs + 3, limbs + 3, 1, 1);
 
