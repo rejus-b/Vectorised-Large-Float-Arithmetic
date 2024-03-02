@@ -84,13 +84,14 @@ void avxmpfr_exp_allign(mpfr_t *firstNum, mpfr_t *secondNum)
     return;
 }
 
+/*
 int main() {
 
     mpfr_t number1, number2;
 
     // Set the numbers
     mpfr_inits2(PRECISION_256, number1, number2, NULL);
-      
+   
     // Assign the numbers 
     mpfr_set_str(number1, "1.25", 10, MPFR_RNDN);
     mpfr_set_str(number2, "2.25", 10, MPFR_RNDN);
@@ -144,3 +145,4 @@ int main() {
     
     return 0;
 }
+*/

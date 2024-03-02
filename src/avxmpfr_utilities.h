@@ -16,22 +16,23 @@
 #include <stdio.h>
 #include <mpfr.h>
 #include <stdint.h>
+#include <immintrin.h>
 
 // Lets define some macros 
 #define PRECISION_512 512 
 #define PRECISION_256 256
 
-// Note that all limbs are printed from the least significant limb (LSL) first to the most significant limb (MSL)
-void print_binary(const mp_limb_t *limbs, mpfr_prec_t precision)
-{
-    for (mpfr_prec_t i = 0; i < (precision + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS; ++i)
-    {
-        for (int j = GMP_NUMB_BITS - 1; j >= 0; --j)
-        {
-            printf("%ld", (limbs[i] >> j) & 1);
-        }
-        printf(" ");
-    }
-}
+
+// Now to define all the functions
+void print_binary(const mp_limb_t *limbs, mpfr_prec_t precision);
+void hexdump_m256i(const __m256i values, const char* name);
+
+void avxmpfr_exp_allign(mpfr_t *firstNum, mpfr_t *secondNum);
+
+int is_all_zeros(__m256i x);
+__m256i avx_add (const __m256i_u a, const __m256i_u b);
+
+mp_limb_t* avxmpfr_pad252(mpfr_t mpfrNumber);
+mp_limb_t* avxmpfr_unpad252(mpfr_t mpfrNumber);
 
 #endif // AVXMPFR_UTILITIES_H
