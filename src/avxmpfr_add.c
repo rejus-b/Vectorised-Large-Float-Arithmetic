@@ -19,12 +19,9 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t pr
     // First allign the exponents of the numbers to be added 
     avxmpfr_exp_allign(op1, op2);
 
-    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
-    print_binary(limbs, PRECISION_256);
-
     // Now pad the limbs of these numbers
-//    op1->_mpfr_d = avxmpfr_pad252(op1);
-//    op2->_mpfr_d = avxmpfr_pad252(op2);
+    op1->_mpfr_d = avxmpfr_pad252(op1);
+    op2->_mpfr_d = avxmpfr_pad252(op2);
 
     // Now you can add these numbers and assign to rop
     // Note that you have to create a set of packed integers for the AVX lanes
@@ -44,7 +41,14 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t pr
     __m256i_u rop_avx = avx_add(op1_avx, op2_avx);
     
     // Now assign them to the actual rop
-//    rop->_mpfr_d[0] =  
+    rop->_mpfr_d[0] = rop_avx[0];
+    rop->_mpfr_d[1] = rop_avx[1];
+    rop->_mpfr_d[2] = rop_avx[2];
+    rop->_mpfr_d[3] = rop_avx[3];
+     
+    // Finally unpad rop
+    rop->_mpfr_d = avxmpfr_unpad252(rop);
+
 }
 
 int main() {
@@ -73,6 +77,11 @@ int main() {
 
     // Test that different exponents are found and alligned when less than or equal to 64
     avxmpfr_add(result, number1, number2, MPFR_RNDN, PRECISION_256);
-    
+   
+    printf("\nAfter avxmpfr_add"); 
+    printf("Exp: %ld \n", (result)->_mpfr_exp);
+    limbs = (mp_limb_t *)result->_mpfr_d; 
+    print_binary(limbs, PRECISION_256);
+
     return 0;
 }
