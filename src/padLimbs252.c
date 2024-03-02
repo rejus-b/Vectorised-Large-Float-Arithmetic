@@ -104,7 +104,7 @@ mp_limb_t* avxmpfr_unpad252(mpfr_t mpfrNumber) // Take an input MPFR variable ty
     return limbs; 
 }
 
-
+/*
 int main()
 {
     // Main function will be removed when all code is linked
@@ -118,18 +118,19 @@ int main()
     // Print the current number value 
     mpfr_printf("Value is = %.50Rf\n", num);
 
-    mpfr_prec_t precision = mpfr_get_prec(num);
+   // mpfr_prec_t precision = mpfr_get_prec(num);
     printf(" EXP: %ld \n", mpfr_get_exp(num));
     printf(" LIMBS: ");
 
     // Test the padding code	
-    mp_limb_t *limbs = avxmpfr_pad256(num);
+    mp_limb_t *limbs = avxmpfr_pad252(num);
     print_binary(limbs, PRECISION_256);
 
 
     // Test unpadding code
     printf("\n\n");
-    limbs = avxmpfr_unpad256(num);
+    limbs = avxmpfr_unpad252(num);
     print_binary(limbs, PRECISION_256);
 
 }
+*/
