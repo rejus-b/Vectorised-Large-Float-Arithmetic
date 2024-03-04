@@ -6,8 +6,8 @@
     Original proposed code for doing addition in parallel with truncated rounding using AVX2.
     By Massimiliano Fasi
 	
-	Further updates / configurations.
-	By Rejus Bulevicius
+    Further updates / configurations.
+    By Rejus Bulevicius
 	
     Known changes include:
 	Fixing carry propgation and normalisation when a carry bit is encountered.

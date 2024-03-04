@@ -3,7 +3,7 @@
 /*
     This code takes 4 MPFR limbs and changes the spacing to be consistent formatting of having a leading 0 per limb.
     Example of output MPFR limb value using 6 bit number transformed to work with 8 bits.
-    1101 0100 -> 0110 0101 (Where the original 2 LSB 0s are default MPFR type limb padding.
+    1101 01(00) -> (0)110 (0)101 (Where the original 2 LSB 0s are default MPFR type limb padding.
 
     This requires:
 	A number less than or equal to 2^252 to work with 256 bit numbers.
@@ -24,13 +24,15 @@ mp_limb_t* avxmpfr_pad252(mpfr_t mpfrNumber) // Take an input MPFR variable type
 
     // Extract the limbs from the mpfrNumber
     mp_limb_t* limbs = (mp_limb_t *)mpfrNumber->_mpfr_d;
-   
+
+    /*   
     // Test setting all limbs that can be used, to be used 
     limbs[0] = 0xFFFFFFFFFFFFFFF0;
     limbs[1] = 0xFFFFFFFFFFFFFFFF;
     limbs[2] = 0xFFFFFFFFFFFFFFFF;
     limbs[3] = 0xFFFFFFFFFFFFFFFF;
-    
+    */    
+
     for (int i = 0; i < 4; i++)
     {
 	// Shift everything 1 time per iteration, decreasing from limbs[3...0] to limbs [1...0] 
@@ -77,12 +79,35 @@ mp_limb_t* avxmpfr_unpad252(mpfr_t mpfrNumber) // Take an input MPFR variable ty
     // Extract the limbs from the mpfrNumber
     mp_limb_t* limbs = (mp_limb_t *)mpfrNumber->_mpfr_d;
    
+    /*
     // Test setting all bits that can be used, to be used 
     limbs[0] = 0x7FFFFFFFFFFFFFFF;
     limbs[1] = 0x7FFFFFFFFFFFFFFF;
     limbs[2] = 0x7FFFFFFFFFFFFFFF;
     limbs[3] = 0x7FFFFFFFFFFFFFFF;
-   
+    */   
+
+    // Shift limbs[3...3] once to the left leaving a single 0 LSB.
+    mpn_lshift(limbs + 3, limbs + 3, 1, 1);
+
+    // Mask the non-pad MSB of limbs[2...2] to shift into limbs [3...3] and then shift limbs[2...2] over twice leaving two 0 LSBs
+    uint64_t  lsb_mask = mpn_lshift(limbs + 2, limbs + 2, 1, 2);// limbs[2] | 0x8000000000000000;;
+    limbs[3] = limbs[3] | lsb_mask;
+    //mpn_lshift(limbs + 2, limbs + 2, 1, 2);
+
+    // Mask the non-pad MSBs of limbs[1...1] to shift into limbs [2...2] and then shift limbs[1...1] over thrice leaving three 0 LSBs
+    lsb_mask = mpn_lshift(limbs + 1, limbs + 1, 1, 3);//limbs[1] | 0xC000000000000000;
+    limbs[2] = limbs[2] | lsb_mask;
+    //mpn_lshift(limbs + 1, limbs + 1, 1, 3);
+    
+    // Mask the non-pad MSBs of limbs[0...0] to shift into limbs [1...1] and then shift limbs[0...0] over four times leaving four 0 LSBs
+    lsb_mask = mpn_lshift(limbs + 0, limbs + 0, 1, 4); //limbs[0] | 0xE000000000000000;
+    limbs[1] = limbs[1] | lsb_mask;
+   // mpn_lshift(limbs, limbs, 1, 4);
+    
+
+    /*
+
     // Shift limbs[3...3] once to the left leaving a single 0 LSB.
     mpn_lshift(limbs + 3, limbs + 3, 1, 1);
 
@@ -92,15 +117,17 @@ mp_limb_t* avxmpfr_unpad252(mpfr_t mpfrNumber) // Take an input MPFR variable ty
     mpn_lshift(limbs + 2, limbs + 2, 1, 2);
 
     // Mask the non-pad MSBs of limbs[1...1] to shift into limbs [2...2] and then shift limbs[1...1] over thrice leaving three 0 LSBs
-    lsb_mask = limbs[1] | 0x9000000000000000;
+    lsb_mask = limbs[1] | 0xE000000000000000; // Used to be 9
     limbs[2] = limbs[2] | lsb_mask;
     mpn_lshift(limbs +1, limbs + 1, 1, 3);
     
     // Mask the non-pad MSBs of limbs[0...0] to shift into limbs [1...1] and then shift limbs[0...0] over four times leaving four 0 LSBs
-    lsb_mask = limbs[0] | 0xA000000000000000;
+    lsb_mask = limbs[0] | 0xC000000000000000;
     limbs[1] = limbs[1] | lsb_mask;
     mpn_lshift(limbs, limbs, 1, 4);
     
+    */
+
     return limbs; 
 }
 

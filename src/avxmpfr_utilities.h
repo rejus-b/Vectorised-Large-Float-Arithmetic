@@ -27,7 +27,7 @@
 void print_binary(const mp_limb_t *limbs, mpfr_prec_t precision);
 void hexdump_m256i(const __m256i values, const char* name);
 
-void avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum);
+mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum);
 
 int is_all_zeros(__m256i x);
 __m256i avx_add (const __m256i_u a, const __m256i_u b);
