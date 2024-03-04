@@ -91,20 +91,43 @@ mp_limb_t* avxmpfr_unpad252(mpfr_t mpfrNumber) // Take an input MPFR variable ty
     mpn_lshift(limbs + 3, limbs + 3, 1, 1);
 
     // Mask the non-pad MSB of limbs[2...2] to shift into limbs [3...3] and then shift limbs[2...2] over twice leaving two 0 LSBs
+    uint64_t  lsb_mask = mpn_lshift(limbs + 2, limbs + 2, 1, 2);// limbs[2] | 0x8000000000000000;;
+    limbs[3] = limbs[3] | lsb_mask;
+    //mpn_lshift(limbs + 2, limbs + 2, 1, 2);
+
+    // Mask the non-pad MSBs of limbs[1...1] to shift into limbs [2...2] and then shift limbs[1...1] over thrice leaving three 0 LSBs
+    lsb_mask = mpn_lshift(limbs + 1, limbs + 1, 1, 3);//limbs[1] | 0xC000000000000000;
+    limbs[2] = limbs[2] | lsb_mask;
+    //mpn_lshift(limbs + 1, limbs + 1, 1, 3);
+    
+    // Mask the non-pad MSBs of limbs[0...0] to shift into limbs [1...1] and then shift limbs[0...0] over four times leaving four 0 LSBs
+    lsb_mask = mpn_lshift(limbs + 0, limbs + 0, 1, 4); //limbs[0] | 0xE000000000000000;
+    limbs[1] = limbs[1] | lsb_mask;
+   // mpn_lshift(limbs, limbs, 1, 4);
+    
+
+    /*
+
+    // Shift limbs[3...3] once to the left leaving a single 0 LSB.
+    mpn_lshift(limbs + 3, limbs + 3, 1, 1);
+
+    // Mask the non-pad MSB of limbs[2...2] to shift into limbs [3...3] and then shift limbs[2...2] over twice leaving two 0 LSBs
     uint64_t  lsb_mask = limbs[2] | 0x8000000000000000;
     limbs[3] = limbs[3] | lsb_mask;
     mpn_lshift(limbs + 2, limbs + 2, 1, 2);
 
     // Mask the non-pad MSBs of limbs[1...1] to shift into limbs [2...2] and then shift limbs[1...1] over thrice leaving three 0 LSBs
-    lsb_mask = limbs[1] | 0x9000000000000000;
+    lsb_mask = limbs[1] | 0xE000000000000000; // Used to be 9
     limbs[2] = limbs[2] | lsb_mask;
     mpn_lshift(limbs +1, limbs + 1, 1, 3);
     
     // Mask the non-pad MSBs of limbs[0...0] to shift into limbs [1...1] and then shift limbs[0...0] over four times leaving four 0 LSBs
-    lsb_mask = limbs[0] | 0xA000000000000000;
+    lsb_mask = limbs[0] | 0xC000000000000000;
     limbs[1] = limbs[1] | lsb_mask;
     mpn_lshift(limbs, limbs, 1, 4);
     
+    */
+
     return limbs; 
 }
 

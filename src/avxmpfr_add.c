@@ -135,5 +135,6 @@ int main()
     //printf("%s", result_str);
     mpfr_printf("%.256Rf", result);
 */
+    mpfr_printf("%.256Rf", result);
     return 0;
 }
