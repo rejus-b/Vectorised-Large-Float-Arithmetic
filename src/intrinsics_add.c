@@ -110,10 +110,10 @@ __m256i avx_add (const __m256i_u a, const __m256i_u b, mpfr_exp_t* exponent)
 
 	// Using roundToNearestEven 
 	if (rounding_bit)
-	    result = _mm256_set_epi64x(result[0],
+	    result = _mm256_set_epi64x(result[0] & 0x1111111111111110,
 					result[1],
 					result[2],
-					result[3] & 0x1111111111111110);
+					result[3]);
     }
 
     return result;
