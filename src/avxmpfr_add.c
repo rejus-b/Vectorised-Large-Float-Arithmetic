@@ -96,13 +96,19 @@ int main()
    
     // Assign the numbers 
     mpfr_set_str(number1, "1.25", 10, MPFR_RNDN);
-    mpfr_set_str(number2, "2.25", 10, MPFR_RNDN);
- 
+//    mpfr_set_str(number2, "2.25", 10, MPFR_RNDN);
+//    mpfr_set_str(number2, "576460752303423487", 10, MPFR_RNDN);
+//    mpfr_set_str(number2, "1152921504606846977", 10, MPFR_RNDN);
+//    mpfr_set_ui(number2, 2, MPFR_RNDN);
+//    mpfr_pow_ui(number2, number2, 62, MPFR_RNDN); 
+    mpfr_set_str(number2, "11111111111111111111111111111111111111111111111111111111111111111", 2, MPFR_RNDN);
+    //mpfr_set_str(number2, "1111111111111111111111111111111111111111111111111111111111111111110111", 2, MPFR_RNDN);
+
     // Get a copy of the limbs prior and exp 
     printf("Exponents and limbs prior: \n");
 
-    printf("Exp: %ld \n", (number1)->_mpfr_exp);
-    mp_limb_t *limbs = (mp_limb_t *)number1->_mpfr_d; 
+    printf("Exp: %ld \n", (number2)->_mpfr_exp);
+    mp_limb_t *limbs = (mp_limb_t *)number2->_mpfr_d; 
     print_binary(limbs, PRECISION_256);
 
     printf("\n");
@@ -124,17 +130,21 @@ int main()
 
 
     avxmpfr_add(result, number1, number2, MPFR_RNDN, PRECISION_256);
-/*
+    //mpfr_add(result, number1, number2, MPFR_RNDF);
+
     printf("\nAfter avxmpfr_add"); 
     printf("\nExp: %ld \n", mpfr_get_exp(result)); // (result)->_mpfr_exp);
     limbs = (mp_limb_t *)result->_mpfr_d; 
     print_binary(limbs, PRECISION_256);
 
-    printf("\nmpfr_add print results:");
+    printf("\nmpfr_add print results:\n");
     //result_str = mpfr_get_str(NULL, &result->_mpfr_exp, 10, 0, result, MPFR_RNDN);
     //printf("%s", result_str);
-    mpfr_printf("%.256Rf", result);
-*/
+
+
+	
+
+
     mpfr_printf("%.256Rf", result);
     return 0;
 }
