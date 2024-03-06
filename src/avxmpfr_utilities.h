@@ -30,7 +30,7 @@ void hexdump_m256i(const __m256i values, const char* name);
 mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum);
 
 int is_all_zeros(__m256i x);
-__m256i avx_add (const __m256i_u a, const __m256i_u b);
+__m256i avx_add (const __m256i_u a, const __m256i_u b, mpfr_exp_t* exponent);
 
 mp_limb_t* avxmpfr_pad252(mpfr_t mpfrNumber);
 mp_limb_t* avxmpfr_unpad252(mpfr_t mpfrNumber);

@@ -59,7 +59,8 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t pr
 
 
     // Now you can add these
-    __m256i_u rop_avx = avx_add(op1_avx, op2_avx);
+    __m256i_u rop_avx = avx_add(op1_avx, op2_avx, &(rop)->_mpfr_exp);
+    printf("\n\n final exp is %ld \n\n", rop->_mpfr_exp); 
     
     printf("\n");
     printf("\n");
@@ -102,7 +103,7 @@ int main()
 //    mpfr_set_ui(number2, 2, MPFR_RNDN);
 //    mpfr_pow_ui(number2, number2, 62, MPFR_RNDN); 
     mpfr_set_str(number2, "11111111111111111111111111111111111111111111111111111111111111111", 2, MPFR_RNDN);
-    //mpfr_set_str(number2, "1111111111111111111111111111111111111111111111111111111111111111110111", 2, MPFR_RNDN);
+//    mpfr_set_str(number2, "1111111111111111111111111111111111111111111111111111111111111111110111", 2, MPFR_RNDN);
 
     // Get a copy of the limbs prior and exp 
     printf("Exponents and limbs prior: \n");
