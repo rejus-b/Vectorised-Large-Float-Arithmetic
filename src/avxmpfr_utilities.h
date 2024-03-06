@@ -19,8 +19,8 @@
 #include <immintrin.h>
 
 // Lets define some macros 
-#define PRECISION_512 512 
-#define PRECISION_256 256
+#define PRECISION_512 504 
+#define PRECISION_256 252
 
 
 // Now to define all the functions
