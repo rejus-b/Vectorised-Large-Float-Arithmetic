@@ -26,13 +26,13 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t pr
     op1->_mpfr_d = avxmpfr_pad252(op1);
     op2->_mpfr_d = avxmpfr_pad252(op2);
 
-    printf("\n");
-    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
-    print_binary(limbs, PRECISION_256);
+//    printf("\n");
+//    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
+//    print_binary(limbs, PRECISION_256);
 
-    printf("\n");
-    limbs = (mp_limb_t *)op2->_mpfr_d; 
-    print_binary(limbs, PRECISION_256);
+//    printf("\n");
+//    limbs = (mp_limb_t *)op2->_mpfr_d; 
+//    print_binary(limbs, PRECISION_256);
 
     // Now you can add these numbers and assign to rop
     // Note that you have to create a set of packed integers for the AVX lanes
@@ -50,21 +50,21 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t pr
 					    op2->_mpfr_d[2],
 					    op2->_mpfr_d[3]);
 
-    printf("\n");
-    printf("\n");
-    hexdump_m256i(op1_avx, "op1");
+//    printf("\n");
+//    printf("\n");
+//    hexdump_m256i(op1_avx, "op1");
 
-    printf("\n");
-    hexdump_m256i(op2_avx, "op2");
+//    printf("\n");
+//    hexdump_m256i(op2_avx, "op2");
 
 
     // Now you can add these
     __m256i_u rop_avx = avx_add(op1_avx, op2_avx, &(rop)->_mpfr_exp);
-    printf("\n\n final exp is %ld \n\n", rop->_mpfr_exp); 
+//    printf("\n\n final exp is %ld \n\n", rop->_mpfr_exp); 
     
-    printf("\n");
-    printf("\n");
-    hexdump_m256i(rop_avx, "rop_avx");
+//    printf("\n");
+//    printf("\n");
+//    hexdump_m256i(rop_avx, "rop_avx");
 
 
     // Now assign them to the actual rop
@@ -74,20 +74,21 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t pr
     rop->_mpfr_d[3] = rop_avx[0];
 
 
-    printf("\n");
-    printf("\n");
-    limbs = (mp_limb_t *)rop->_mpfr_d; 
-    print_binary(limbs, PRECISION_256);
+//    printf("\n");
+//    printf("\n");
+//    limbs = (mp_limb_t *)rop->_mpfr_d; 
+//    print_binary(limbs, PRECISION_256);
      
     // Finally unpad rop
     rop->_mpfr_d = avxmpfr_unpad252(rop);
 
-    printf("\n");
-    printf("\n");
-    limbs = (mp_limb_t *)rop->_mpfr_d; 
-    print_binary(limbs, PRECISION_256);
+//    printf("\n");
+//    printf("\n");
+//    limbs = (mp_limb_t *)rop->_mpfr_d; 
+//    print_binary(limbs, PRECISION_256);
 }
 
+#ifdef include_main
 int main() 
 {
     mpfr_t number1, number2, result;
@@ -126,3 +127,4 @@ int main()
     mpfr_printf("%.256Rf", result);
     return 0;
 }
+#endif
