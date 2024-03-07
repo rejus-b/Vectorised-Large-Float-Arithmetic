@@ -17,7 +17,7 @@
 */
 
 // Test if a __m256i variable has all bits set to 0.
-int is_all_zeros(__m256i x)
+inline int is_all_zeros(__m256i x)
 {
     return _mm256_testz_si256(x, x);
 }
@@ -38,8 +38,8 @@ __m256i avx_add (const __m256i_u a, const __m256i_u b, mpfr_exp_t* exponent)
 	// If it is, you know there has been a carry over in previous iterations
 	// You can run the normalisation if this is the case	
 
-	if (carry[0] == 1)
-	    printf("\n\n I had to overflow\n\n");
+//	if (carry[0] == 1)
+//	    printf("\n\n I had to overflow\n\n");
 
         result = _mm256_add_epi64(result, carry);     // Add 64-bit integers.
 //	hexdump_m256i(result, "res rn");
@@ -79,18 +79,18 @@ __m256i avx_add (const __m256i_u a, const __m256i_u b, mpfr_exp_t* exponent)
     // Normalise the result with truncation.
     if (normalise)
     {
-	printf("\n\n\n had to normALISE\n\n");
+//	printf("\n\n\n had to normALISE\n\n");
 //    printf("NOrmalised\n");
         // Extract bits to be shifted right across lanes.
         const __m256i_u last_bit_mask = _mm256_set1_epi64x(0x0000000000000001);
 //	hexdump_m256i(result, "mask end");
         __m256i_u last_bit = _mm256_and_si256(result, last_bit_mask);
-	hexdump_m256i(last_bit, "lasbit");
+//	hexdump_m256i(last_bit, "lasbit");
 
 
         // Extract the least significant bit of the result.
         int rounding_bit = last_bit[3]; // Used to be 0
-	printf("\n%lld b", rounding_bit);
+//	printf("\n%lld b", rounding_bit);
 
         // Shift the bit right across lanes. The carry position is skipped,
         // hence the shift by 62 instead of 63.
