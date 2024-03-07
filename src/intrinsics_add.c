@@ -13,6 +13,7 @@
 	Fixing carry propgation and normalisation when a carry bit is encountered.
 	Adding roundToNearestEven.
 	Fixing normalisation even more properly when an overflow is encountered.
+	Removed proper roundToNearestEven as mpfr does it intermediately, this is more akin to faithful rounding.
 */
 
 // Test if a __m256i variable has all bits set to 0.
@@ -37,8 +38,8 @@ __m256i avx_add (const __m256i_u a, const __m256i_u b, mpfr_exp_t* exponent)
 	// If it is, you know there has been a carry over in previous iterations
 	// You can run the normalisation if this is the case	
 
-//	if (carry[0] == 1)
-//	    printf("\n\n I had to overflow\n\n");
+	if (carry[0] == 1)
+	    printf("\n\n I had to overflow\n\n");
 
         result = _mm256_add_epi64(result, carry);     // Add 64-bit integers.
 //	hexdump_m256i(result, "res rn");
@@ -78,6 +79,7 @@ __m256i avx_add (const __m256i_u a, const __m256i_u b, mpfr_exp_t* exponent)
     // Normalise the result with truncation.
     if (normalise)
     {
+	printf("\n\n\n had to normALISE\n\n");
 //    printf("NOrmalised\n");
         // Extract bits to be shifted right across lanes.
         const __m256i_u last_bit_mask = _mm256_set1_epi64x(0x0000000000000001);
@@ -108,13 +110,13 @@ __m256i avx_add (const __m256i_u a, const __m256i_u b, mpfr_exp_t* exponent)
         // Perhaps rounding_bit can be used to round here. For now, the result
         // is truncated and the rounding_bit is optimised away.
 
-	// Using roundToNearestEven 
+	// Using roundToNearest and faithful rounding
 	if (rounding_bit)
-	    result = _mm256_set_epi64x(result[0] & 0x1111111111111110,
+	    result = _mm256_set_epi64x(result[0] & 0x0000000000000001,
 					result[1],
 					result[2],
 					result[3]);
-    }
+   } // Normalisation
 
     return result;
 }
