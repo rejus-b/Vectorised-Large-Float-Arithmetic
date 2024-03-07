@@ -14,13 +14,16 @@ void assign_binary(char* binNum)
     // Initialise array size 
     const int size = 254;
 
+    // Set a random value to a decimal point 
+    int pointLocation = rand() % 252;
+
     for (int i = 0; i < size - 2; i++)
     {
-	binNum[i] = '0' + (rand() % 2); // Clamp to char 0 or 1 
+	if (i == pointLocation)
+	    binNum[i] = '.';
+	else
+	    binNum[i] = '0' + (rand() % 2); // Clamp to char 0 or 1 
     }
-
-    // Set a random value to a decimal point 
-    binNum[rand() % 252] = '.';
 
     // Set the null terminator
     binNum[size - 1] = '\0';
@@ -30,95 +33,116 @@ void assign_binary(char* binNum)
 
 int main()
 {
+    // Make it so that it automatically prints the numbers after the long wait
+    setbuf(stdout, NULL);  // Disable buffering for stdout
+
     // Set a random seed for number generation
     srand(time(NULL));
    
      // Set up an array long enough to act as a 252 string 
-    char first_bin[254]; // 252 bits of precision + 1 for '\0' and +1 for a '.'   
+    char first_bin[254];	// 252 bits of precision + 1 for '\0' and +1 for a '.'   
     char second_bin[254];
 
+    // Initialise some variables
+    uint64_t total = 0;		// How many values are correct against mpfr_add()
+    clock_t start, end;		// Operation start and end time
+    mpfr_t mpfr_time;		// How long it takes to execute mpfr_add()
+    mpfr_t avxmpfr_time;	// How long it takes to execute avxmpfr_add() 
+    char debug = 0;		// If debug is 1 print out the variables and limbs
+    uint64_t iterations = 1<<25; 
 
-uint64_t total = 0;
-for(uint32_t i = 0; i < (2<<16); i++)
-{
-    assign_binary(first_bin);
-    assign_binary(second_bin);
-    
+    // Initialise some mpfr_t variables for storing the time
+    mpfr_inits2(256, mpfr_time, avxmpfr_time, NULL);
+    mpfr_set_str(mpfr_time, "0", 10, MPFR_RNDN);  
+    mpfr_set_str(avxmpfr_time, "0", 10, MPFR_RNDN);  
 
-    // Initialise the mpfr_t types
+    // Initialise the mpfr_t numbers
     mpfr_t number1, number2, mpfr_result, avxmpfr_result;
     mpfr_inits2(PRECISION_256, number1, number2, mpfr_result, avxmpfr_result, NULL);
 
-    // Assign the mpfr_t numbers
-    mpfr_set_str(number1, first_bin, 2, MPFR_RNDN);
-    mpfr_set_str(number2, second_bin, 2, MPFR_RNDN);
-
-// For testing force normalisation
-//number1->_mpfr_d[3] |= 0xF100000000000000;
-//number2->_mpfr_d[3] |= 0xF100000000000000;
-
-
-    // Use mpfr_add() and print the result
-    printf("\n\t\t mpfr_add()\n\n");
-    mpfr_add(mpfr_result, number1, number2, MPFR_RNDN); // Setting it to faithful rounding makes it no longer fail
-    mpfr_printf("\n%.252Rf\n", mpfr_result);
-
-    // Print the binary limbs aswell
-    printf("\nEXP: %ld\n", (mpfr_result)->_mpfr_exp);
-    mp_limb_t* mpfr_limbs = (mp_limb_t *) mpfr_result->_mpfr_d;
-    print_binary(mpfr_limbs, PRECISION_256);
-    printf("\n"); 
-
-    
-    // Use avxmpfr_add() and print the result
-    printf("\n\t\t avxmpfr_add()\n\n");
-    avxmpfr_add(avxmpfr_result, number1, number2, MPFR_RNDN, PRECISION_256);
-    mpfr_printf("\n%.252Rf\n", avxmpfr_result);
-
-    // Print the binary limbs again
-    printf("\nEXP: %ld\n", (avxmpfr_result)->_mpfr_exp);
-    mp_limb_t* avxmpfr_limbs = (mp_limb_t *) avxmpfr_result->_mpfr_d;
-    print_binary(avxmpfr_limbs, PRECISION_256);
-    printf("\n");
-
-    int cmp_result = mpfr_equal_p(mpfr_result, avxmpfr_result);
-    total += cmp_result;
-
-    printf("\n\nComparison return: %i\n\n", cmp_result);  
-    if (cmp_result == 0)
-	break;
-
-printf("Precision of mpfr_result: %ld\n", mpfr_get_prec(mpfr_result));
-printf("Precision of avxmpfr_result: %ld\n", mpfr_get_prec(avxmpfr_result));
-
-
-}
-
-printf("\n\n\n\nGrand  is %ld", total / (2<<16));
-printf("\n%ld", total);
-/*
-    mpfr_clear(mpfr_result);
-    mpfr_clear(avxmpfr_result);
-    mpfr_clear(number1);
-    mpfr_clear(number2); 
-
-    // Use a XOR comparison on both limbs to prove they are the same/different
-    // Should be a perfect 0 if all limbs are equal
-    mp_limb_t limb_compare[4];
-    char matches = 0;
-    
-    for (int i = 3; i >= 0; i--)
+    //  Test it total of 33,554,432 iterations
+    for(uint32_t i = 0; i < iterations; i++)
     {
-	limb_compare[i] = mpfr_limbs[i] ^ avxmpfr_limbs[i];	
-	printf("Limb %d: mpfr=%lx, avxmpfr=%lx, XOR=%lx\n", i, mpfr_limbs[i], avxmpfr_limbs[i], limb_compare[i]);
-	if (limb_compare[i] == 0)
-	    matches++;
-    } 
+	// Assign a 252 binary value
+	assign_binary(first_bin);
+        assign_binary(second_bin);
+    
+	// Assign the mpfr_t numbers
+	mpfr_set_str(number1, first_bin, 2, MPFR_RNDN);
+	mpfr_set_str(number2, second_bin, 2, MPFR_RNDN);
 
-    if (matches == 4)
+	// mpfr_add()
+	if (debug)
+	{
+	    // Use mpfr_add() and print the result
+	    printf("\n\t\t mpfr_add()\n\n");
+	}
+
+	start = clock();
+	mpfr_add(mpfr_result, number1, number2, MPFR_RNDF); // Setting it to faithful rounding makes it no longer fail
+	end = clock();
+	mpfr_add_d(mpfr_time, mpfr_time, ((double) (end - start) / CLOCKS_PER_SEC), MPFR_RNDN);		// ((double) (end - start)) / CLOCKS_PER_SEC;
+
+	if (debug)
+	{ 
+	   mpfr_printf("\n%.252Rf\n", mpfr_result);
+
+	    // Print the binary limbs aswell
+	    printf("\nEXP: %ld\n", (mpfr_result)->_mpfr_exp);
+	    mp_limb_t* mpfr_limbs = (mp_limb_t *) mpfr_result->_mpfr_d;
+	    print_binary(mpfr_limbs, PRECISION_256);
+	    printf("\n"); 
+	}
+
+	// avxmpfr_add()
+	if (debug)
+	{ 
+	    // Use avxmpfr_add() and print the result
+	    printf("\n\t\t avxmpfr_add()\n\n");
+	}
+
+	start = clock();
+	avxmpfr_add(avxmpfr_result, number1, number2, MPFR_RNDF, PRECISION_256);
+	end = clock();
+	mpfr_add_d(avxmpfr_time, avxmpfr_time, ((double) (end - start) / CLOCKS_PER_SEC), MPFR_RNDN);		// ((double) (end - start)) / CLOCKS_PER_SEC;
+	//avxmpfr_time += ((double) (end - start)) / CLOCKS_PER_SEC;
+
+	if (debug)
+	{
+	    mpfr_printf("\n%.252Rf\n", avxmpfr_result);
+
+	    // Print the binary limbs again
+	    printf("\nEXP: %ld\n", (avxmpfr_result)->_mpfr_exp);
+	    mp_limb_t* avxmpfr_limbs = (mp_limb_t *) avxmpfr_result->_mpfr_d;
+	    print_binary(avxmpfr_limbs, PRECISION_256);
+	    printf("\n");
+	}
+
+	int cmp_result = mpfr_equal_p(mpfr_result, avxmpfr_result);
+	total += cmp_result;
+
+	//printf("\n\nComparison return: %i\n\n", cmp_result);  
+        if (cmp_result == 0)
+        {
+	    printf("\n\x1b[31mLimbs are unequal\x1b[0m\n\n");
+	    break;
+	}
+    }
+
+    printf("\n\nMatch value : %ld", total / iterations); // If 1 complete match, else no
+    printf("\nTotal matches : %ld\n", total);
+    if (total / (2<<30))
 	printf("\n\x1b[32mLimbs are equal\x1b[0m\n\n");
-    else
-	printf("\n\x1b[31mLimbs are unequal\x1b[0m\n\n");
- */   
+
+    // Print the time cases
+    mpfr_printf("\nTime taken for mpfr_add(): %.128Rf seconds\n", mpfr_time); 
+    mpfr_printf("\nTime taken for avxmpfr_add(): %.128Rf seconds\n", avxmpfr_time); 
+
+    mpfr_div_ui(mpfr_time, mpfr_time, iterations, MPFR_RNDN);
+    mpfr_div_ui(avxmpfr_time, avxmpfr_time, iterations, MPFR_RNDN);
+
+    mpfr_printf("\nAverage time taken for mpfr_add(): %.128Rf seconds\n", mpfr_time);
+    mpfr_printf("Average time taken for avxmpfr_add(): %.128Rf seconds\n", avxmpfr_time);
+
     return 0;
 }
