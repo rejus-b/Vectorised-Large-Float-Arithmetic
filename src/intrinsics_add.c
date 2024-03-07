@@ -113,9 +113,9 @@ __m256i avx_add (const __m256i_u a, const __m256i_u b, mpfr_exp_t* exponent)
         // Perhaps rounding_bit can be used to round here. For now, the result
         // is truncated and the rounding_bit is optimised away.
 
-	// Using roundToNearest and faithful rounding
+	// Using roundToNearest and faithful rounding (You can remove the rounding entirely for faithful)
 //	if (rounding_bit)
-//	    result = _mm256_set_epi64x(result[0] & 0x0000000000000001,
+//	    result = _mm256_set_epi64x(result[0] & 0xFFFFFFFFFFFFFFFE,
 //					result[1],
 //					result[2],
 //					result[3]);

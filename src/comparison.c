@@ -60,7 +60,7 @@ for(uint32_t i = 0; i < (2<<16); i++)
 
     // Use mpfr_add() and print the result
     printf("\n\t\t mpfr_add()\n\n");
-    mpfr_add(mpfr_result, number1, number2, MPFR_RNDF); // Setting it to faithful rounding makes it no longer fail
+    mpfr_add(mpfr_result, number1, number2, MPFR_RNDN); // Setting it to faithful rounding makes it no longer fail
     mpfr_printf("\n%.252Rf\n", mpfr_result);
 
     // Print the binary limbs aswell
