@@ -19,8 +19,8 @@
 #include <immintrin.h>
 
 // Lets define some macros 
-#define PRECISION_512 512 
-#define PRECISION_256 256
+#define PRECISION_512 504 
+#define PRECISION_256 252
 
 
 // Now to define all the functions
@@ -34,5 +34,7 @@ __m256i avx_add (const __m256i_u a, const __m256i_u b, mpfr_exp_t* exponent);
 
 mp_limb_t* avxmpfr_pad252(mpfr_t mpfrNumber);
 mp_limb_t* avxmpfr_unpad252(mpfr_t mpfrNumber);
+
+void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t precision);
 
 #endif // AVXMPFR_UTILITIES_H
