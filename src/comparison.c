@@ -37,6 +37,10 @@ int main()
     char first_bin[254]; // 252 bits of precision + 1 for '\0' and +1 for a '.'   
     char second_bin[254];
 
+
+uint64_t total = 0;
+for(uint32_t i = 0; i < (2<<16); i++)
+{
     assign_binary(first_bin);
     assign_binary(second_bin);
     
@@ -78,16 +82,25 @@ int main()
     printf("\n");
 
     int cmp_result = mpfr_equal_p(mpfr_result, avxmpfr_result);
+    total += cmp_result;
+
     printf("\n\nComparison return: %i\n\n", cmp_result);  
+    if (cmp_result == 0)
+	break;
 
 printf("Precision of mpfr_result: %ld\n", mpfr_get_prec(mpfr_result));
 printf("Precision of avxmpfr_result: %ld\n", mpfr_get_prec(avxmpfr_result));
 
+
+}
+
+printf("\n\n\n\nGrand  is %ld", total / (2<<16));
+printf("\n%ld", total);
+/*
     mpfr_clear(mpfr_result);
     mpfr_clear(avxmpfr_result);
     mpfr_clear(number1);
     mpfr_clear(number2); 
-
 
     // Use a XOR comparison on both limbs to prove they are the same/different
     // Should be a perfect 0 if all limbs are equal
@@ -106,6 +119,6 @@ printf("Precision of avxmpfr_result: %ld\n", mpfr_get_prec(avxmpfr_result));
 	printf("\n\x1b[32mLimbs are equal\x1b[0m\n\n");
     else
 	printf("\n\x1b[31mLimbs are unequal\x1b[0m\n\n");
-    
+ */   
     return 0;
 }
