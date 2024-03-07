@@ -23,6 +23,9 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum)
     // Flag for testing if mpfr_t variables were swapped temporarily
     char mpfrSwap = 0;
 
+    // Flag for capturing the output bits from a right shift
+    uint64_t shiftedBits = 0;
+
     // Reduce some function calls by grabbing the exponents early
     mpfr_exp_t firstExp = (firstNum)->_mpfr_exp;
     mpfr_exp_t secondExp = (secondNum)->_mpfr_exp;
@@ -50,7 +53,7 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum)
     // If a difference of 64 or less, shift directly
     if (expDifference <= 64)
     {
-	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
+	shiftedBits = mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
 
 	// Now set the exponent to the shifted value
 	(firstNum)->_mpfr_exp += expDifference;
@@ -64,19 +67,24 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum)
 
 	while (expDifference > 64)
 	{
-	    mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, 64);
+	   shiftedBits = mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, 64);
 	    expDifference -= 64;
 	    limbShiftCount++;	
+	firstNum->_mpfr_d[0] = firstNum->_mpfr_d[0] & ((shiftedBits & 0x8000000000000000) >> 63); 
 	}
 
 	// The difference should now be less than or equal to 64
-	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
+	shiftedBits = mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
 
 	// Now set the exponent to the shifted value
 	(firstNum)->_mpfr_exp += GMP_NUMB_BITS * limbShiftCount + expDifference;
     }	
     
     /* Allignment complete */
+
+    // Now lets try do some rounding to nearest even by removing the final odd bit.
+    if (firstNum->_mpfr_exp < 252)	    // Check that it is infact not an integer
+	firstNum->_mpfr_d[0] = firstNum->_mpfr_d[0] & ((shiftedBits & 0x8000000000000000) >> 63); 
 
     // If the mpfr_t variables were swapped, swap them back
     if (mpfrSwap == 1)
