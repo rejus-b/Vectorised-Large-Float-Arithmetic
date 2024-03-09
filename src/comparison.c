@@ -49,7 +49,7 @@ int main()
     mpfr_t mpfr_time;		// How long it takes to execute mpfr_add()
     mpfr_t avxmpfr_time;	// How long it takes to execute avxmpfr_add() 
     char debug = 0;		// If debug is 1 print out the variables and limbs
-    uint64_t iterations = 1<<25; 
+    uint64_t iterations = 1<<15;// 1<<25 in actual timing cases 
 
     // Initialise some mpfr_t variables for storing the time
     mpfr_inits2(256, mpfr_time, avxmpfr_time, NULL);

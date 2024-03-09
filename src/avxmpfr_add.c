@@ -4,7 +4,7 @@
 
 #include "avxmpfr_utilities.h"
 
-void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t precision)
+void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint16_t PRECISION)
 {
     /*
 	rop is resultant operand
@@ -17,7 +17,7 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t pr
     */
 
     // First allign the exponents of the numbers to be added and set rop exponent
-    rop->_mpfr_exp = avxmpfr_exp_allign(op1, op2);
+    rop->_mpfr_exp = avxmpfr_exp_allign(op1, op2, PRECISION);
 
 //    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
 //    print_binary(limbs, PRECISION_256);

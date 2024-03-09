@@ -9,7 +9,7 @@
     Future versions may have a setting for rounding down or round up when alligning.
 */
 
-mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum) 
+mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t PRECISION) 
 {
     /* 
 	Take two numbers and find the one with the lower exponent to shift right until the exponents match.
@@ -50,7 +50,7 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum)
     // If a difference of 64 or less, shift directly
     if (expDifference <= 64)
     {
-	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
+	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
 
 	// Now set the exponent to the shifted value
 	(firstNum)->_mpfr_exp += expDifference;
@@ -64,13 +64,13 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum)
 
 	while (expDifference > 64)
 	{
-	    mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, 64);
+	    mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, 64);
 	    expDifference -= 64;
 	    limbShiftCount++;	
 	}
 
 	// The difference should now be less than or equal to 64
-	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
+	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
 
 	// Now set the exponent to the shifted value
 	(firstNum)->_mpfr_exp += GMP_NUMB_BITS * limbShiftCount + expDifference;
