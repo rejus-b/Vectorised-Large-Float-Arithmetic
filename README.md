@@ -3,6 +3,8 @@ Undergraduate project at University of Leeds (23/24)
 
 Supervisor: Mantas Mikaitis - https://mmikaitis.github.io/
 
+Assessor: Nishant Ravikumar - https://www.researchgate.net/profile/Nishant-Ravikumar
+
 Supervisee: Rejus Bulevicius - https://github.com/rejus-b/
 
 Additional guidance: Massimiliano Fasi - https://github.com/mfasi
