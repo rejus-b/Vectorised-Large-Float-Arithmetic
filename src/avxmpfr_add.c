@@ -15,18 +15,6 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint1
 
 	Note precision is not currently implemented
     */
-	
-	// Set some vars to stop unitialised calls
-	__m256i_u op1_avx;
-	__m256i_u op2_avx;
-	__m512i_u op1_avx_512i;
-	__m512i_u op2_avx_512i;
-	__m256i_u rop_avx;
-	__m512i_u rop_avx_512i;
-	
-	// Check precision
-	if (PRECISION != PRECISION_256 || PRECISION != PRECISION_512)
-		return;
 
     // First allign the exponents of the numbers to be added and set rop exponent
     rop->_mpfr_exp = avxmpfr_exp_allign(op1, op2, PRECISION);
@@ -35,16 +23,8 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint1
 //    print_binary(limbs, PRECISION_256);
 
     // Now pad the limbs of these numbers
-	if (PRECISION == PRECISION_256)
-	{
-		op1->_mpfr_d = avxmpfr_pad252(op1);
-		op2->_mpfr_d = avxmpfr_pad252(op2);
-	}
-	else if (PRECISION == PRECISION_512)
-	{
-		op1->_mpfr_d = avxmpfr_pad504(op1);
-		op2->_mpfr_d = avxmpfr_pad504(op2);
-	}
+    op1->_mpfr_d = avxmpfr_pad252(op1);
+    op2->_mpfr_d = avxmpfr_pad252(op2);
 
 //    printf("\n");
 //    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
@@ -57,45 +37,18 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint1
     // Now you can add these numbers and assign to rop
     // Note that you have to create a set of packed integers for the AVX lanes
     
-    // Set the AVX registers
-	if (PRECISION == PRECISION_256)
-	{
-		// Set the first AVX register
-		__m256i_u op1_avx = _mm256_set_epi64x(op1->_mpfr_d[0],  // The least significant AVX lane / MPFR limb
-							op1->_mpfr_d[1],
-							op1->_mpfr_d[2],
-							op1->_mpfr_d[3]); 
-		
+    // Set the first AVX register
+    __m256i_u op1_avx = _mm256_set_epi64x(op1->_mpfr_d[0],  // The least significant AVX lane / MPFR limb
+					    op1->_mpfr_d[1],
+					    op1->_mpfr_d[2],
+					    op1->_mpfr_d[3]); 
+    
 
-		// Set the second AVX register   
-		__m256i_u op2_avx = _mm256_set_epi64x(op2->_mpfr_d[0],  // The least significant AVX lane / MPFR limb
-							op2->_mpfr_d[1],
-							op2->_mpfr_d[2],
-							op2->_mpfr_d[3]);
-	}
-	else if (PRECISION == PRECISION_512)
-	{
-		// Set the first AVX register
-		__m512i_u op1_avx_512i = _mm512_set_epi64(op1->_mpfr_d[0],  // The least significant AVX lane / MPFR limb
-							op1->_mpfr_d[1],
-							op1->_mpfr_d[2],
-							op1->_mpfr_d[3],
-							op1->_mpfr_d[4],
-							op1->_mpfr_d[5],
-							op1->_mpfr_d[6],
-							op1->_mpfr_d[7]); 
-		
-
-		// Set the second AVX register   
-		__m512i_u op2_avx_512i = _mm512_set_epi64(op2->_mpfr_d[0],  // The least significant AVX lane / MPFR limb
-							op2->_mpfr_d[1],
-							op2->_mpfr_d[2],
-							op2->_mpfr_d[3],
-							op2->_mpfr_d[4],
-							op2->_mpfr_d[5],
-							op2->_mpfr_d[6],
-							op2->_mpfr_d[7]);
-	}
+    // Set the second AVX register   
+    __m256i_u op2_avx = _mm256_set_epi64x(op2->_mpfr_d[0],  // The least significant AVX lane / MPFR limb
+					    op2->_mpfr_d[1],
+					    op2->_mpfr_d[2],
+					    op2->_mpfr_d[3]);
 
 //    printf("\n");
 //    printf("\n");
@@ -106,15 +59,7 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint1
 
 
     // Now you can add these
-	if (PRECISION == PRECISION_256)
-	{
-		__m256i_u rop_avx = avx_add(op1_avx, op2_avx, &(rop)->_mpfr_exp);
-	}
-	else if (PRECISION == PRECISION_512)
-	{
-		__m512i_u rop_avx_512i = avx_add_512i(op1_avx_512i, op2_avx_512i, &(rop)->_mpfr_exp);
-	}
-	
+    __m256i_u rop_avx = avx_add(op1_avx, op2_avx, &(rop)->_mpfr_exp);
 //    printf("\n\n final exp is %ld \n\n", rop->_mpfr_exp); 
     
 //    printf("\n");
@@ -123,24 +68,10 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint1
 
 
     // Now assign them to the actual rop
-	if (PRECISION == PRECISION_256)
-	{
-		rop->_mpfr_d[0] = rop_avx[3];
-		rop->_mpfr_d[1] = rop_avx[2];
-		rop->_mpfr_d[2] = rop_avx[1];
-		rop->_mpfr_d[3] = rop_avx[0];
-	}
-	else if (PRECISION == PRECISION_512)
-	{
-		rop->_mpfr_d[0] = rop_avx_512i[7];
-		rop->_mpfr_d[1] = rop_avx_512i[6];
-		rop->_mpfr_d[2] = rop_avx_512i[5];
-		rop->_mpfr_d[3] = rop_avx_512i[4];	
-		rop->_mpfr_d[4] = rop_avx_512i[3];
-		rop->_mpfr_d[5] = rop_avx_512i[2];
-		rop->_mpfr_d[6] = rop_avx_512i[1];
-		rop->_mpfr_d[7] = rop_avx_512i[0];
-	}
+    rop->_mpfr_d[0] = rop_avx[3];
+    rop->_mpfr_d[1] = rop_avx[2];
+    rop->_mpfr_d[2] = rop_avx[1];
+    rop->_mpfr_d[3] = rop_avx[0];
 
 
 //    printf("\n");
@@ -149,20 +80,79 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint1
 //    print_binary(limbs, PRECISION_256);
      
     // Finally unpad rop
-	if (PRECISION == PRECISION_256)
-	{
-		rop->_mpfr_d = avxmpfr_unpad252(rop);
-	}
-	else if (PRECISION == PRECISION_512)
-	{
-		rop->_mpfr_d = avxmpfr_unpad504(rop);
-	}
+    rop->_mpfr_d = avxmpfr_unpad252(rop);
 
 //    printf("\n");
 //    printf("\n");
 //    limbs = (mp_limb_t *)rop->_mpfr_d; 
 //    print_binary(limbs, PRECISION_256);
 }
+
+
+
+void avxmpfr_add_512(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint16_t PRECISION)
+{
+    /*
+	rop is resultant operand
+	op1 is first operand
+	op2 is second operand
+	rnd is rounding mode
+	precision is the precision of the avx lanes you want to use and the assumed precision of your mpfr_number (Either PRECISION_256 / PRECISION_512)
+    */
+
+    // First allign the exponents of the numbers to be added and set rop exponent
+    rop->_mpfr_exp = avxmpfr_exp_allign(op1, op2, PRECISION);
+
+    // Now pad the limbs of these numbers
+    op1->_mpfr_d = avxmpfr_pad252(op1);
+    op2->_mpfr_d = avxmpfr_pad252(op2);
+
+    // Now you can add these numbers and assign to rop
+    // Note that you have to create a set of packed integers for the AVX lanes
+    
+    // Set the first AVX register
+	__m512i_u op1_avx = _mm512_set_epi64(op1->_mpfr_d[0],  // The least significant AVX lane / MPFR limb
+						op1->_mpfr_d[1],
+						op1->_mpfr_d[2],
+						op1->_mpfr_d[3],
+						op1->_mpfr_d[4],
+						op1->_mpfr_d[5],
+						op1->_mpfr_d[6],
+						op1->_mpfr_d[7]); 
+    
+
+    // Set the second AVX register   
+	__m512i_u op2_avx = _mm512_set_epi64(op2->_mpfr_d[0],  // The least significant AVX lane / MPFR limb
+						op2->_mpfr_d[1],
+						op2->_mpfr_d[2],
+						op2->_mpfr_d[3],
+						op2->_mpfr_d[4],
+						op2->_mpfr_d[5],
+						op2->_mpfr_d[6],
+						op2->_mpfr_d[7]);
+					
+
+    // Now you can add these
+    __m512i_u rop_avx = avx_add_512i(op1_avx, op2_avx, &(rop)->_mpfr_exp);
+	
+    // Now assign them to the actual rop
+		rop->_mpfr_d[0] = rop_avx[7];
+		rop->_mpfr_d[1] = rop_avx[6];
+		rop->_mpfr_d[2] = rop_avx[5];
+		rop->_mpfr_d[3] = rop_avx[4];	
+		rop->_mpfr_d[4] = rop_avx[3];
+		rop->_mpfr_d[5] = rop_avx[2];
+		rop->_mpfr_d[6] = rop_avx[1];
+		rop->_mpfr_d[7] = rop_avx[0];
+
+    // Finally unpad rop
+    rop->_mpfr_d = avxmpfr_unpad504(rop);
+
+}
+
+
+
+
 
 #ifdef include_main
 int main() 

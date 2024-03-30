@@ -42,5 +42,5 @@ mp_limb_t* avxmpfr_pad504(mpfr_t mpfrNumber);
 mp_limb_t* avxmpfr_unpad504(mpfr_t mpfrNumber);
 
 void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint16_t PRECISION);
-
+void avxmpfr_add_512(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint16_t PRECISION);
 #endif // AVXMPFR_UTILITIES_H
