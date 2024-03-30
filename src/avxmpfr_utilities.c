@@ -19,7 +19,18 @@ void hexdump_m256i(const __m256i values, const char* name)
 {
     __uint64_t *val = (__uint64_t*) &values;
     for (int i = 0; i < 4; i++)
-	{
+    {
+        printf("%016lX ", val[i]);
+    }
+    printf(" = %s\n", name);
+}
+
+// 512 bit variation
+void hexdump_m512i(const __m512i values, const char* name)
+{
+    __uint64_t *val = (__uint64_t*) &values;
+    for (int i = 0; i < 8; i++)
+    {
         printf("%016lX ", val[i]);
     }
     printf(" = %s\n", name);
