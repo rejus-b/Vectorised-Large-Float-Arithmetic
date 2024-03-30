@@ -29,7 +29,7 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
 
     // Check if exponents are already alligned
     if (firstExp == secondExp)
-	return secondExp;
+		return secondExp;
     
     // Make firstNum the mpfr_t with the bigger exponent 
     // Swap back after shifitng
@@ -37,8 +37,8 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
     // Could also be optimised to only swap the ptrs of the mantissa
     if (firstExp > secondExp)
     {
-	mpfr_swap(firstNum, secondNum);
-	mpfrSwap = 1;
+		mpfr_swap(firstNum, secondNum);
+		mpfrSwap = 1;
     }
 
     /* Now to move onto actually shifting */
@@ -50,17 +50,17 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
     // If a difference of 64 or less, shift directly
     if (expDifference <= 64)
     {
-	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
+		mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
 
-	// Now set the exponent to the shifted value
-	(firstNum)->_mpfr_exp += expDifference;
+		// Now set the exponent to the shifted value
+		(firstNum)->_mpfr_exp += expDifference;
     }
 
     // If a difference of greater than 64
     else if (expDifference > 64) 
     {
-	// Keep track of total times a whole limb has shifted
-	int limbShiftCount = 0;
+		// Keep track of total times a whole limb has shifted
+		int limbShiftCount = 0;
 
 	while (expDifference > 64)
 	{
@@ -81,8 +81,8 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
     // If the mpfr_t variables were swapped, swap them back
     if (mpfrSwap == 1)
     {
-	mpfr_swap(firstNum, secondNum);
-	return firstExp; 
+		mpfr_swap(firstNum, secondNum);
+		return firstExp; 
     }
 
     return secondExp;
