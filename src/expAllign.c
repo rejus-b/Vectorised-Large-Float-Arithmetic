@@ -9,7 +9,7 @@
     Future versions may have a setting for rounding down or round up when alligning.
 */
 
-mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum) 
+mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t PRECISION) 
 {
     /* 
 	Take two numbers and find the one with the lower exponent to shift right until the exponents match.
@@ -29,7 +29,7 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum)
 
     // Check if exponents are already alligned
     if (firstExp == secondExp)
-	return secondExp;
+		return secondExp;
     
     // Make firstNum the mpfr_t with the bigger exponent 
     // Swap back after shifitng
@@ -37,8 +37,8 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum)
     // Could also be optimised to only swap the ptrs of the mantissa
     if (firstExp > secondExp)
     {
-	mpfr_swap(firstNum, secondNum);
-	mpfrSwap = 1;
+		mpfr_swap(firstNum, secondNum);
+		mpfrSwap = 1;
     }
 
     /* Now to move onto actually shifting */
@@ -50,27 +50,27 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum)
     // If a difference of 64 or less, shift directly
     if (expDifference <= 64)
     {
-	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
+		mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
 
-	// Now set the exponent to the shifted value
-	(firstNum)->_mpfr_exp += expDifference;
+		// Now set the exponent to the shifted value
+		(firstNum)->_mpfr_exp += expDifference;
     }
 
     // If a difference of greater than 64
     else if (expDifference > 64) 
     {
-	// Keep track of total times a whole limb has shifted
-	int limbShiftCount = 0;
+		// Keep track of total times a whole limb has shifted
+		int limbShiftCount = 0;
 
 	while (expDifference > 64)
 	{
-	    mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, 64);
+	    mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, 64);
 	    expDifference -= 64;
 	    limbShiftCount++;	
 	}
 
 	// The difference should now be less than or equal to 64
-	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION_256 + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
+	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
 
 	// Now set the exponent to the shifted value
 	(firstNum)->_mpfr_exp += GMP_NUMB_BITS * limbShiftCount + expDifference;
@@ -81,8 +81,8 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum)
     // If the mpfr_t variables were swapped, swap them back
     if (mpfrSwap == 1)
     {
-	mpfr_swap(firstNum, secondNum);
-	return firstExp; 
+		mpfr_swap(firstNum, secondNum);
+		return firstExp; 
     }
 
     return secondExp;

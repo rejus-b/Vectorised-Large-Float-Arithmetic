@@ -4,7 +4,7 @@
 
 #include "avxmpfr_utilities.h"
 
-void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t precision)
+void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint16_t PRECISION)
 {
     /*
 	rop is resultant operand
@@ -12,27 +12,25 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t pr
 	op2 is second operand
 	rnd is rounding mode
 	precision is the precision of the avx lanes you want to use and the assumed precision of your mpfr_number (Either PRECISION_256 / PRECISION_512)
-
-	Note precision is not currently implemented
     */
 
     // First allign the exponents of the numbers to be added and set rop exponent
-    rop->_mpfr_exp = avxmpfr_exp_allign(op1, op2);
+    rop->_mpfr_exp = avxmpfr_exp_allign(op1, op2, PRECISION);
 
-//    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
-//    print_binary(limbs, PRECISION_256);
+    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
+    print_binary(limbs, PRECISION_256);
 
     // Now pad the limbs of these numbers
     op1->_mpfr_d = avxmpfr_pad252(op1);
     op2->_mpfr_d = avxmpfr_pad252(op2);
 
-//    printf("\n");
-//    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
-//    print_binary(limbs, PRECISION_256);
+    printf("\n");
+   limbs = (mp_limb_t *)op1->_mpfr_d; 
+    print_binary(limbs, PRECISION_256);
 
-//    printf("\n");
-//    limbs = (mp_limb_t *)op2->_mpfr_d; 
-//    print_binary(limbs, PRECISION_256);
+    printf("\n");
+    limbs = (mp_limb_t *)op2->_mpfr_d; 
+    print_binary(limbs, PRECISION_256);
 
     // Now you can add these numbers and assign to rop
     // Note that you have to create a set of packed integers for the AVX lanes
@@ -88,13 +86,91 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t pr
 //    print_binary(limbs, PRECISION_256);
 }
 
+
+
+// Add with 512 bits instead of 256
+void avxmpfr_add_512(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint16_t PRECISION)
+{
+    /*
+	rop is resultant operand
+	op1 is first operand
+	op2 is second operand
+	rnd is rounding mode
+	precision is the precision of the avx lanes you want to use and the assumed precision of your mpfr_number (Either PRECISION_256 / PRECISION_512)
+    */
+
+    // First allign the exponents of the numbers to be added and set rop exponent
+    rop->_mpfr_exp = avxmpfr_exp_allign(op1, op2, PRECISION);
+	
+    //mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
+    //print_binary(limbs, PRECISION_512);
+
+    // Now pad the limbs of these numbers
+    op1->_mpfr_d = avxmpfr_pad504(op1);
+   op2->_mpfr_d = avxmpfr_pad504(op2);
+	
+//    printf("\n");
+//    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
+//    print_binary(limbs, PRECISION_512);
+
+//    printf("\n\n");
+//    limbs = (mp_limb_t *)op2->_mpfr_d; 
+//    print_binary(limbs, PRECISION_512);
+
+    // Now you can add these numbers and assign to rop
+    // Note that you have to create a set of packed integers for the AVX lanes
+    
+    // Set the first AVX register
+	__m512i_u op1_avx = _mm512_set_epi64(op1->_mpfr_d[0],  // The least significant AVX lane / MPFR limb
+						op1->_mpfr_d[1],
+						op1->_mpfr_d[2],
+						op1->_mpfr_d[3],
+						op1->_mpfr_d[4],
+						op1->_mpfr_d[5],
+						op1->_mpfr_d[6],
+						op1->_mpfr_d[7]); 
+    
+
+    // Set the second AVX register   
+	__m512i_u op2_avx = _mm512_set_epi64(op2->_mpfr_d[0],  // The least significant AVX lane / MPFR limb
+						op2->_mpfr_d[1],
+						op2->_mpfr_d[2],
+						op2->_mpfr_d[3],
+						op2->_mpfr_d[4],
+						op2->_mpfr_d[5],
+						op2->_mpfr_d[6],
+						op2->_mpfr_d[7]);
+					
+
+    // Now you can add these
+    __m512i_u rop_avx = avx_add_512i(op1_avx, op2_avx, &(rop)->_mpfr_exp);
+	
+    // Now assign them to the actual rop
+		rop->_mpfr_d[0] = rop_avx[7];
+		rop->_mpfr_d[1] = rop_avx[6];
+		rop->_mpfr_d[2] = rop_avx[5];
+		rop->_mpfr_d[3] = rop_avx[4];	
+		rop->_mpfr_d[4] = rop_avx[3];
+		rop->_mpfr_d[5] = rop_avx[2];
+		rop->_mpfr_d[6] = rop_avx[1];
+		rop->_mpfr_d[7] = rop_avx[0];
+
+    // Finally unpad rop
+    rop->_mpfr_d = avxmpfr_unpad504(rop);
+
+}
+
+
+
+//#define include_main
+
 #ifdef include_main
 int main() 
 {
     mpfr_t number1, number2, result;
 
     // Set the numbers
-    mpfr_inits2(PRECISION_256, number1, number2, result, NULL);
+    mpfr_inits2(PRECISION_512, number1, number2, result, NULL);
    
     // Assign the numbers 
     mpfr_set_str(number1, "1.25", 10, MPFR_RNDN);
@@ -109,22 +185,22 @@ int main()
     // Get a copy of the limbs prior and exp 
     printf("Exponents and limbs prior: \n");
 
-    printf("Exp: %ld \n", (number2)->_mpfr_exp);
-    mp_limb_t *limbs = (mp_limb_t *)number2->_mpfr_d; 
-    print_binary(limbs, PRECISION_256);
+    printf("Exp: %ld \n", (number1)->_mpfr_exp);
+    mp_limb_t *limbs = (mp_limb_t *)number1->_mpfr_d; 
+    print_binary(limbs, PRECISION_512);
 
-    printf("\n");
+    printf("\n\n");
 
-    avxmpfr_add(result, number1, number2, MPFR_RNDN, PRECISION_256);
+    avxmpfr_add_512(result, number1, number2, MPFR_RNDN, PRECISION_512);
     //mpfr_add(result, number1, number2, MPFR_RNDF);
 
     printf("\nAfter avxmpfr_add"); 
     printf("\nExp: %ld \n", mpfr_get_exp(result)); // (result)->_mpfr_exp);
     limbs = (mp_limb_t *)result->_mpfr_d; 
-    print_binary(limbs, PRECISION_256);
+    print_binary(limbs, PRECISION_512);
 
     printf("\nmpfr_add print results:\n");
-    mpfr_printf("%.256Rf", result);
+    mpfr_printf("%.512Rf", result);
     return 0;
 }
 #endif

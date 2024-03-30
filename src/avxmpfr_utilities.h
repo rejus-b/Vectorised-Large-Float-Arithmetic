@@ -26,15 +26,21 @@
 // Now to define all the functions
 void print_binary(const mp_limb_t *limbs, mpfr_prec_t precision);
 void hexdump_m256i(const __m256i values, const char* name);
+void hexdump_m512i(const __m512i values, const char* name);
 
-mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum);
+mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t PRECISION);
 
 int is_all_zeros(__m256i x);
 __m256i avx_add (const __m256i_u a, const __m256i_u b, mpfr_exp_t* exponent);
 
+int is_all_zeroes_512i(__m512i x);
+__m512i avx_add_512i (const __m512i_u a, const __m512i_u b, mpfr_exp_t* exponent);
+
 mp_limb_t* avxmpfr_pad252(mpfr_t mpfrNumber);
 mp_limb_t* avxmpfr_unpad252(mpfr_t mpfrNumber);
+mp_limb_t* avxmpfr_pad504(mpfr_t mpfrNumber);
+mp_limb_t* avxmpfr_unpad504(mpfr_t mpfrNumber);
 
-void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, uint16_t precision);
-
+void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint16_t PRECISION);
+void avxmpfr_add_512(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint16_t PRECISION);
 #endif // AVXMPFR_UTILITIES_H
