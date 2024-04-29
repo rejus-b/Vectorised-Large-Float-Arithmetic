@@ -17,20 +17,20 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint1
     // First allign the exponents of the numbers to be added and set rop exponent
     rop->_mpfr_exp = avxmpfr_exp_allign(op1, op2, PRECISION);
 
-    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
-    print_binary(limbs, PRECISION_256);
+//    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
+//    print_binary(limbs, PRECISION_256);
 
     // Now pad the limbs of these numbers
     op1->_mpfr_d = avxmpfr_pad252(op1);
     op2->_mpfr_d = avxmpfr_pad252(op2);
 
-    printf("\n");
-   limbs = (mp_limb_t *)op1->_mpfr_d; 
-    print_binary(limbs, PRECISION_256);
+//    printf("\n");
+//   limbs = (mp_limb_t *)op1->_mpfr_d; 
+//    print_binary(limbs, PRECISION_256);
 
-    printf("\n");
-    limbs = (mp_limb_t *)op2->_mpfr_d; 
-    print_binary(limbs, PRECISION_256);
+//    printf("\n");
+//    limbs = (mp_limb_t *)op2->_mpfr_d; 
+//    print_binary(limbs, PRECISION_256);
 
     // Now you can add these numbers and assign to rop
     // Note that you have to create a set of packed integers for the AVX lanes
@@ -107,7 +107,7 @@ void avxmpfr_add_512(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const u
 
     // Now pad the limbs of these numbers
     op1->_mpfr_d = avxmpfr_pad504(op1);
-   op2->_mpfr_d = avxmpfr_pad504(op2);
+    op2->_mpfr_d = avxmpfr_pad504(op2);
 	
 //    printf("\n");
 //    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 

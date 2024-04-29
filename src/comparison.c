@@ -65,12 +65,12 @@ int main()
     char first_bin[254];	// 252 bits of precision +1 for '\0' and +1 for a '.'   
     char second_bin[254];
 	
-	// Set up an array long enough to act as a 504 string
-	char first_bin_512[506];	// 504 bits of precision +1 for '\0' and +1 for a '.'
-	char second_bin_512[506];
+    // Set up an array long enough to act as a 504 string
+    char first_bin_512[506];	// 504 bits of precision +1 for '\0' and +1 for a '.'
+    char second_bin_512[506];
 
     // Initialise some variables
-	uint16_t PRECISION = PRECISION_512;	// Set the precision you want to compare
+    uint16_t PRECISION = PRECISION_256;	// Set the precision you want to compare
     uint64_t total = 0;			// How many values are correct against mpfr_add()
     clock_t start, end;			// Operation start and end time
     mpfr_t mpfr_time;			// How long it takes to execute mpfr_add()
@@ -86,7 +86,7 @@ int main()
     // Initialise the mpfr_t numbers
     mpfr_t number1, number2, number1_512, number2_512, mpfr_result, avxmpfr_result, mpfr_result_512, avxmpfr_result_512;
     mpfr_inits2(PRECISION_256, number1, number2, mpfr_result, avxmpfr_result, NULL);
-	mpfr_inits2(PRECISION_512, number1_512, number2_512, mpfr_result_512, avxmpfr_result_512, NULL);
+    mpfr_inits2(PRECISION_512, number1_512, number2_512, mpfr_result_512, avxmpfr_result_512, NULL);
 
     //  Test it total of 33,554,432 iterations
     for(uint32_t i = 0; i < iterations; i++)
@@ -249,14 +249,14 @@ int main()
 	printf("\n\x1b[32mLimbs are equal\x1b[0m\n\n");
 
     // Print the time cases
-    mpfr_printf("\nTime taken for mpfr_add(): %.128Rf seconds\n", mpfr_time); 
-    mpfr_printf("\nTime taken for avxmpfr_add(): %.128Rf seconds\n", avxmpfr_time); 
+    mpfr_printf("\nTime taken for mpfr_add():\t\t %.128Rf seconds\n", mpfr_time); 
+    mpfr_printf("\nTime taken for avxmpfr_add():\t\t %.128Rf seconds\n", avxmpfr_time); 
 
     mpfr_div_ui(mpfr_time, mpfr_time, iterations, MPFR_RNDN);
     mpfr_div_ui(avxmpfr_time, avxmpfr_time, iterations, MPFR_RNDN);
 
-    mpfr_printf("\nAverage time taken for mpfr_add(): %.128Rf seconds\n", mpfr_time);
-    mpfr_printf("Average time taken for avxmpfr_add(): %.128Rf seconds\n", avxmpfr_time);
+    mpfr_printf("\nAverage time taken for mpfr_add():\t %.128Rf seconds\n", mpfr_time);
+    mpfr_printf("Average time taken for avxmpfr_add():\t %.128Rf seconds\n", avxmpfr_time);
 
     return 0;
 }
