@@ -1,8 +1,8 @@
 SRC_FILES := avxmpfr_add.c expAllign.c padLimbs.c intrinsics_add.c intrinsics_add_512i.c avxmpfr_utilities.c comparison.c
 EXEC_NAMES := $(SRC_FILES:.c=)
 
-COMMON_FLAGS := -O3 -Wextra -Wall -Wpedantic
-SPECIAL_FLAGS := -lmpfr -lgmp -mavx2 -mavx512f -mfma -lrt
+COMMON_FLAGS := -O3 -Wextra -Wall -Wpedantic -g
+SPECIAL_FLAGS := -lmpfr -lgmp -mavx2 -mavx512f -mfma -lrt -fopenmp
 
 build: $(EXEC_NAMES)
 	@echo "\nUse -O3 for optimization and -O0 for debugging\n"

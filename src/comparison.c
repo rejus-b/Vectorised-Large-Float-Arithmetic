@@ -69,13 +69,13 @@ int main()
     char second_bin_512[506];
 
     // Initialise some variables
-    uint16_t PRECISION = PRECISION_512;	// Set the precision you want to compare
+    uint16_t PRECISION = PRECISION_256;	// Set the precision you want to compare
     uint64_t total = 0;			// How many values are correct against mpfr_add()
     clock_t start, end;			// Operation start and end time
     mpfr_t mpfr_time;			// How long it takes to execute mpfr_add()
     mpfr_t avxmpfr_time;		// How long it takes to execute avxmpfr_add() 
     char debug = 0;			// If debug is 1 print out the variables and limbs
-    uint64_t iterations = 1<<15;	// 1<<25 in actual timing cases 
+    uint64_t iterations = 1<<20;	// 1<<20 in actual timing cases 
 
     struct timespec wall_start, wall_end;		// POSIX Sec/Nanosec timing
     double diff_seconds;				// POSIX time difference
@@ -263,7 +263,7 @@ int main()
 
     printf("\n\nMatch value : %ld", total / iterations); // If 1 complete match, else no
     printf("\nTotal matches : %ld\n", total);
-    if (total / (1<<25))
+    if (total / (1<<20))
 	printf("\n\x1b[32mLimbs are equal\x1b[0m\n\n");
 
     // Print the time cases

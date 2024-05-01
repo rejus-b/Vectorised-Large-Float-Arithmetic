@@ -5,7 +5,7 @@
 */
 
 // Test if a __m512i variable has all bits set to 0.
-inline int is_all_zeros_512i(__m512i x)
+static inline int is_all_zeros_512i(__m512i x)
 {
 	// Compares 64 bit masks against the value of 0, returns 1 if all zero
     return _mm512_test_epi64_mask(x, x) == 0;
