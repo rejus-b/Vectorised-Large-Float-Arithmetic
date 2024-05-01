@@ -6,7 +6,6 @@
 */
 
 #include "avxmpfr_utilities.h"
-#include <time.h>
 #include <stdlib.h>
 
 void assign_binary(char* binNum)
@@ -70,13 +69,16 @@ int main()
     char second_bin_512[506];
 
     // Initialise some variables
-    uint16_t PRECISION = PRECISION_256;	// Set the precision you want to compare
+    uint16_t PRECISION = PRECISION_512;	// Set the precision you want to compare
     uint64_t total = 0;			// How many values are correct against mpfr_add()
     clock_t start, end;			// Operation start and end time
     mpfr_t mpfr_time;			// How long it takes to execute mpfr_add()
     mpfr_t avxmpfr_time;		// How long it takes to execute avxmpfr_add() 
-    char debug = 0;				// If debug is 1 print out the variables and limbs
-    uint64_t iterations = 1<<15;// 1<<25 in actual timing cases 
+    char debug = 0;			// If debug is 1 print out the variables and limbs
+    uint64_t iterations = 1<<15;	// 1<<25 in actual timing cases 
+
+    struct timespec wall_start, wall_end;		// POSIX Sec/Nanosec timing
+    double diff_seconds;				// POSIX time difference
 
     // Initialise some mpfr_t variables for storing the time
     mpfr_inits2(256, mpfr_time, avxmpfr_time, NULL);
@@ -127,10 +129,14 @@ int main()
 				printf("\n\t\t mpfr_add()\n\n");
 			}
 
-			start = clock();
+			//start = clock();
+			clock_gettime(CLOCK_MONOTONIC, &wall_start);
 			mpfr_add(mpfr_result, number1, number2, MPFR_RNDF); // Setting it to faithful rounding makes it no longer fail
-			end = clock();
-			mpfr_add_d(mpfr_time, mpfr_time, ((double) (end - start) / CLOCKS_PER_SEC), MPFR_RNDN);		// ((double) (end - start)) / CLOCKS_PER_SEC;
+			//end = clock();
+			clock_gettime(CLOCK_MONOTONIC, &wall_end);
+			diff_seconds = time_diff(&wall_start, &wall_end); 
+			//mpfr_add_d(mpfr_time, mpfr_time, ((double) (end - start) / CLOCKS_PER_SEC), MPFR_RNDN);
+			mpfr_add_d(mpfr_time, mpfr_time, diff_seconds, MPFR_RNDN);		// ((double) (end - start)) / CLOCKS_PER_SEC;
 
 			if (debug)
 			{ 
@@ -150,10 +156,14 @@ int main()
 				printf("\n\t\t avxmpfr_add()\n\n");
 			}
 
-			start = clock();
+			//start = clock();
+			clock_gettime(CLOCK_MONOTONIC, &wall_start);
 			avxmpfr_add(avxmpfr_result, number1, number2, MPFR_RNDF, PRECISION_256);
-			end = clock();
-			mpfr_add_d(avxmpfr_time, avxmpfr_time, ((double) (end - start) / CLOCKS_PER_SEC), MPFR_RNDN);		// ((double) (end - start)) / CLOCKS_PER_SEC;
+			//end = clock();
+			clock_gettime(CLOCK_MONOTONIC, &wall_end);
+			diff_seconds = time_diff(&wall_start, &wall_end); 
+			//mpfr_add_d(avxmpfr_time, avxmpfr_time, ((double) (end - start) / CLOCKS_PER_SEC), MPFR_RNDN);
+			mpfr_add_d(avxmpfr_time, avxmpfr_time, diff_seconds, MPFR_RNDN);
 			//avxmpfr_time += ((double) (end - start)) / CLOCKS_PER_SEC;
 
 			if (debug)
@@ -181,7 +191,7 @@ int main()
 		
 		
 		// If you want to test 512 precision
-		if (PRECISION == PRECISION_512)
+		else if (PRECISION == PRECISION_512)
 		{
 			// mpfr_add()
 			if (debug)
@@ -190,10 +200,14 @@ int main()
 				printf("\n\t\t mpfr_add()\n\n");
 			}
 
-			start = clock();
+			//start = clock();
+			clock_gettime(CLOCK_MONOTONIC, &wall_start);
 			mpfr_add(mpfr_result_512, number1_512, number2_512, MPFR_RNDF); // Setting it to faithful rounding makes it no longer fail
-			end = clock();
-			mpfr_add_d(mpfr_time, mpfr_time, ((double) (end - start) / CLOCKS_PER_SEC), MPFR_RNDN);		// ((double) (end - start)) / CLOCKS_PER_SEC;
+			//end = clock();
+			clock_gettime(CLOCK_MONOTONIC, &wall_end);
+			diff_seconds = time_diff(&wall_start, &wall_end); 
+			//mpfr_add_d(mpfr_time, mpfr_time, ((double) (end - start) / CLOCKS_PER_SEC), MPFR_RNDN);
+			mpfr_add_d(mpfr_time, mpfr_time, diff_seconds, MPFR_RNDN);
 
 			if (debug)
 			{ 
@@ -213,10 +227,14 @@ int main()
 				printf("\n\t\t avxmpfr_add()\n\n");
 			}
 
-			start = clock();
+			//start = clock();
+			clock_gettime(CLOCK_MONOTONIC, &wall_start);
 			avxmpfr_add_512(avxmpfr_result_512, number1_512, number2_512, MPFR_RNDF, PRECISION_512);
-			end = clock();
-			mpfr_add_d(avxmpfr_time, avxmpfr_time, ((double) (end - start) / CLOCKS_PER_SEC), MPFR_RNDN);		// ((double) (end - start)) / CLOCKS_PER_SEC;
+			//end = clock();
+			clock_gettime(CLOCK_MONOTONIC, &wall_end);
+			diff_seconds = time_diff(&wall_start, &wall_end); 
+			//mpfr_add_d(avxmpfr_time, avxmpfr_time, ((double) (end - start) / CLOCKS_PER_SEC), MPFR_RNDN);
+			mpfr_add_d(avxmpfr_time, avxmpfr_time, diff_seconds, MPFR_RNDN);
 			//avxmpfr_time += ((double) (end - start)) / CLOCKS_PER_SEC;
 
 			if (debug)
