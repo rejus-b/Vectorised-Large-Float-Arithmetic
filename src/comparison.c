@@ -53,40 +53,15 @@ void assign_binary_504(char* binNum)
     return;
 }
 
+
+
+
+//////*				252 Precision Test		*///////
+
 // Tests with only nail bits that would overflow
 // I.e. 100 100 100 100
 //     +100 100 100 100
 void overflow_test252(char* binNum)
-{
-    // Calloc an array and sent every 64th bit as 1
-    char *temp = (char*) calloc(254, sizeof(char));
-    if (temp == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Set the float
-    int point_location = -1;
-
-    while (1)
-    {
-	point_location = rand() % 254;
-	if (point_location != 0 && point_location != 64 && point_location != 128 && point_location != 192) 
-	    break;
-    } 
-    
-    temp[0] = temp[64] = temp[128] = temp[192] = '1';
-    temp[point_location] = '.';
-    temp[253] = '\0'; 
-
-    strcpy(binNum, temp);
-
-}
-
-// Tests with everything but nail bits set
-// I.e. 011 011 011 011
-//    + 011 011 011 011
-void no_overflow_test252(char *binNum)
 {
     // Initialise array size 
     const int size = 254;
@@ -95,7 +70,40 @@ void no_overflow_test252(char *binNum)
     int point_location;
     while (1)
     {
-	point_location = rand() % 254;
+	point_location = rand() % 252;
+	if (point_location != 0 && point_location != 64 && point_location != 128 && point_location != 192) 
+	    break;
+    } 
+
+    for (int i = 0; i < size - 1; i++)
+    {
+	if (i == point_location)
+	    binNum[i] = '.';
+	else if (i % 64 == 0)
+	    binNum[i] = '1';
+	else
+		binNum[i] = '0';
+    }
+
+    // Set the null terminator
+    binNum[size - 1] = '\0';
+    
+    return;
+}
+
+// Tests with everything but nail bits set
+// I.e. 011 011 011 011
+//    + 011 011 011 011
+void no_overflow_test252(char *binNum)
+{
+    // Initialise array size 
+    const int size = 506;
+
+    // Set a random value to a decimal point 
+    int point_location;
+    while (1)
+    {
+	point_location = rand() % 252;
 	if (point_location != 0 && point_location != 64 && point_location != 128 && point_location != 192) 
 	    break;
     }
@@ -113,9 +121,80 @@ void no_overflow_test252(char *binNum)
 
     // Set the null terminator
     binNum[size - 1] = '\0';
-    
-    
 }
+
+
+//////*				504 Precision Test		*///////
+
+// Tests with only nail bits that would overflow
+// I.e. 100 100 100 100
+//     +100 100 100 100
+void overflow_test504(char* binNum)
+{
+    // Initialise array size 
+    const int size = 506;
+
+    // Set the float
+    int point_location;
+
+    while (1)
+    {
+	point_location = rand() % 504;
+	if (point_location != 0 && point_location != 64 && point_location != 128 && point_location != 192 && point_location != 256 && point_location != 320 && point_location != 384 && point_location != 448) 
+	    break;
+    } 
+
+    for (int i = 0; i < size - 1; i++)
+    {
+	if (i == point_location)
+	    binNum[i] = '.';
+	else if (i % 64 == 0)
+		binNum[i] = '1';
+	else
+	    binNum[i] = '0';
+    }
+
+    // Set the null terminator
+    binNum[size - 1] = '\0';
+    
+    return;
+}
+
+// Tests with everything but nail bits set
+// I.e. 011 011 011 011
+//    + 011 011 011 011
+void no_overflow_test504(char *binNum)
+{
+    // Initialise array size 
+    const int size = 506;
+
+    // Set a random value to a decimal point 
+    int point_location;
+    while (1)
+    {
+	point_location = rand() % 504;
+	if (point_location != 0 && point_location != 64 && point_location != 128 && point_location != 192 && point_location != 256 && point_location != 320 && point_location != 384 && point_location != 448)  
+	    break;
+    }
+
+    for (int i = 0; i < size - 1; i++)
+    {
+	if (i == point_location)
+	    binNum[i] = '.';
+	// + 1 for indexs apart from 1 to not get normalised into an nail bit
+	else if (i == 0 || i == 65 || i == 129 || i == 193 || i == 257 || i == 321 || i == 385 || i == 449) 
+	    binNum[i] = '0';
+	else
+	    binNum[i] = '1';
+    }
+
+    // Set the null terminator
+    binNum[size - 1] = '\0';
+}
+
+
+
+
 
 
 int main(int argc, char* argv[])
@@ -135,12 +214,12 @@ int main(int argc, char* argv[])
     char second_bin_512[506];
 
     // Initialise some variables
-    uint16_t PRECISION = NULL;	// Set the precision you want to compare
+    uint16_t PRECISION;	// Set the precision you want to compare
     if (argc > 1)
     {
 	if (strcmp(argv[1], "avx2") == 0)
 	    PRECISION = PRECISION_256;
-	else if (strcmp(argv[1], "avx2") == 0)
+	else if (strcmp(argv[1], "avx512") == 0)
 	    PRECISION = PRECISION_512; 
 	else
 	    return 1;
@@ -159,8 +238,8 @@ int main(int argc, char* argv[])
     if (argc > 2)
 	debug = atoi(argv[2]) == 0 ? 0 : 1;
     uint64_t iterations = 1<<20;	// 1<<20 in actual timing cases 
-    #define OVERFLOW_TEST 0
-    #define NO_OVERFLOW_TEST 1
+    char OVERFLOW_TEST = 0; 		// Nail bits test case 
+    char NO_OVERFLOW_TEST = 0;		// No nail bits test case
 
     struct timespec wall_start, wall_end;		// POSIX Sec/Nanosec timing
     double diff_seconds;				// POSIX time difference
@@ -182,21 +261,31 @@ int main(int argc, char* argv[])
 		assign_binary(first_bin);
 		assign_binary(second_bin);
 
-		#ifdef OVERFLOW_TEST
-		// Set the binarys as nail bit only numbers
-		overflow_test252(first_bin);
-		overflow_test252(second_bin);
-		#endif
-
-		#ifdef NO_OVERFLOW_TEST
-		no_overflow_test252(first_bin);
-		no_overflow_test252(second_bin);
-		#endif
-		
 		// Assign a 504 binary value
 		assign_binary_504(first_bin_512);
 		assign_binary_504(second_bin_512);
+
+		if (OVERFLOW_TEST)
+		{
+		// Set the binarys as nail bit only numbers
+		overflow_test252(first_bin);
+		overflow_test252(second_bin);
 		
+		overflow_test504(first_bin_512);
+		overflow_test504(second_bin_512);
+		}
+
+		if (NO_OVERFLOW_TEST)
+		{
+		// Set nails to 0
+		no_overflow_test252(first_bin);
+		no_overflow_test252(second_bin);
+		
+		no_overflow_test504(first_bin_512);
+		no_overflow_test504(second_bin_512);
+		}	
+		
+
 		// Assign the mpfr_t numbers
 		mpfr_set_str(number1, first_bin, 2, MPFR_RNDN);
 		// Print the binary limbs aswell
@@ -311,7 +400,7 @@ int main(int argc, char* argv[])
 
 				// Print the binary limbs aswell
 				printf("\nEXP: %ld\n", (mpfr_result_512)->_mpfr_exp);
-				mp_limb_t* mpfr_limbs = (mp_limb_t *) mpfr_result->_mpfr_d;
+				mp_limb_t* mpfr_limbs = (mp_limb_t *) mpfr_result_512->_mpfr_d;
 				print_binary(mpfr_limbs, PRECISION_512);
 				printf("\n"); 
 			}
@@ -339,7 +428,7 @@ int main(int argc, char* argv[])
 
 				// Print the binary limbs again
 				printf("\nEXP: %ld\n", (avxmpfr_result_512)->_mpfr_exp);
-				mp_limb_t* avxmpfr_limbs = (mp_limb_t *) avxmpfr_result->_mpfr_d;
+				mp_limb_t* avxmpfr_limbs = (mp_limb_t *) avxmpfr_result_512->_mpfr_d;
 				print_binary(avxmpfr_limbs, PRECISION_512);
 				printf("\n");
 			}
