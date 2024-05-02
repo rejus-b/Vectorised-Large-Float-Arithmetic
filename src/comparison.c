@@ -7,6 +7,7 @@
 
 #include "avxmpfr_utilities.h"
 #include <stdlib.h>
+#include <string.h>
 
 void assign_binary(char* binNum)
 {
@@ -21,7 +22,7 @@ void assign_binary(char* binNum)
 	if (i == pointLocation)
 	    binNum[i] = '.';
 	else
-	    binNum[i] = '0'+ (rand() % 2); // Clamp to char 0 or 1 
+	    binNum[i] = '0' + (rand() % 2); // Clamp to char 0 or 1 
     }
 
     // Set the null terminator
@@ -43,7 +44,7 @@ void assign_binary_504(char* binNum)
 	if (i == pointLocation)
 	    binNum[i] = '.';
 	else
-	    binNum[i] = '0'+ (rand() % 2); // Clamp to char 0 or 1 
+	    binNum[i] = '0' + (rand() % 2); // Clamp to char 0 or 1 
     }
 
     // Set the null terminator
@@ -52,7 +53,72 @@ void assign_binary_504(char* binNum)
     return;
 }
 
-int main()
+// Tests with only nail bits that would overflow
+// I.e. 100 100 100 100
+//     +100 100 100 100
+void overflow_test252(char* binNum)
+{
+    // Calloc an array and sent every 64th bit as 1
+    char *temp = (char*) calloc(254, sizeof(char));
+    if (temp == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set the float
+    int point_location = -1;
+
+    while (1)
+    {
+	point_location = rand() % 254;
+	if (point_location != 0 && point_location != 64 && point_location != 128 && point_location != 192) 
+	    break;
+    } 
+    
+    temp[0] = temp[64] = temp[128] = temp[192] = '1';
+    temp[point_location] = '.';
+    temp[253] = '\0'; 
+
+    strcpy(binNum, temp);
+
+}
+
+// Tests with everything but nail bits set
+// I.e. 011 011 011 011
+//    + 011 011 011 011
+void no_overflow_test252(char *binNum)
+{
+    // Initialise array size 
+    const int size = 254;
+
+    // Set a random value to a decimal point 
+    int point_location;
+    while (1)
+    {
+	point_location = rand() % 254;
+	if (point_location != 0 && point_location != 64 && point_location != 128 && point_location != 192) 
+	    break;
+    }
+
+    for (int i = 0; i < size - 1; i++)
+    {
+	if (i == point_location)
+	    binNum[i] = '.';
+	// + 1 for indexs apart from 1 to not get normalised into an nail bit
+	else if (i == 0 || i == 65 || i == 129 || i == 193) 
+	    binNum[i] = '0';
+	else
+	    binNum[i] = '1';
+    }
+
+    // Set the null terminator
+    binNum[size - 1] = '\0';
+    
+    
+}
+
+
+int main(int argc, char* argv[])
 {
     // Make it so that it automatically prints the numbers after the long wait
     setbuf(stdout, NULL);  // Disable buffering for stdout
@@ -69,13 +135,32 @@ int main()
     char second_bin_512[506];
 
     // Initialise some variables
-    uint16_t PRECISION = PRECISION_256;	// Set the precision you want to compare
+    uint16_t PRECISION = NULL;	// Set the precision you want to compare
+    if (argc > 1)
+    {
+	if (strcmp(argv[1], "avx2") == 0)
+	    PRECISION = PRECISION_256;
+	else if (strcmp(argv[1], "avx2") == 0)
+	    PRECISION = PRECISION_512; 
+	else
+	    return 1;
+    }
+    else
+    {
+	printf("Pass 'avx2' or 'avx512'\n");
+	return 1;
+    }
+
     uint64_t total = 0;			// How many values are correct against mpfr_add()
     clock_t start, end;			// Operation start and end time
     mpfr_t mpfr_time;			// How long it takes to execute mpfr_add()
     mpfr_t avxmpfr_time;		// How long it takes to execute avxmpfr_add() 
     char debug = 0;			// If debug is 1 print out the variables and limbs
+    if (argc > 2)
+	debug = atoi(argv[2]) == 0 ? 0 : 1;
     uint64_t iterations = 1<<20;	// 1<<20 in actual timing cases 
+    #define OVERFLOW_TEST 0
+    #define NO_OVERFLOW_TEST 1
 
     struct timespec wall_start, wall_end;		// POSIX Sec/Nanosec timing
     double diff_seconds;				// POSIX time difference
@@ -96,6 +181,17 @@ int main()
 		// Assign a 252 binary value
 		assign_binary(first_bin);
 		assign_binary(second_bin);
+
+		#ifdef OVERFLOW_TEST
+		// Set the binarys as nail bit only numbers
+		overflow_test252(first_bin);
+		overflow_test252(second_bin);
+		#endif
+
+		#ifdef NO_OVERFLOW_TEST
+		no_overflow_test252(first_bin);
+		no_overflow_test252(second_bin);
+		#endif
 		
 		// Assign a 504 binary value
 		assign_binary_504(first_bin_512);
@@ -131,7 +227,7 @@ int main()
 
 			//start = clock();
 			clock_gettime(CLOCK_MONOTONIC, &wall_start);
-			mpfr_add(mpfr_result, number1, number2, MPFR_RNDF); // Setting it to faithful rounding makes it no longer fail
+			mpfr_add(mpfr_result, number1, number2, MPFR_RNDZ); // Setting it to faithful rounding makes it no longer fail
 			//end = clock();
 			clock_gettime(CLOCK_MONOTONIC, &wall_end);
 			diff_seconds = time_diff(&wall_start, &wall_end); 
@@ -158,7 +254,7 @@ int main()
 
 			//start = clock();
 			clock_gettime(CLOCK_MONOTONIC, &wall_start);
-			avxmpfr_add(avxmpfr_result, number1, number2, MPFR_RNDF, PRECISION_256);
+			avxmpfr_add(avxmpfr_result, number1, number2, MPFR_RNDZ, PRECISION_256);
 			//end = clock();
 			clock_gettime(CLOCK_MONOTONIC, &wall_end);
 			diff_seconds = time_diff(&wall_start, &wall_end); 
@@ -202,7 +298,7 @@ int main()
 
 			//start = clock();
 			clock_gettime(CLOCK_MONOTONIC, &wall_start);
-			mpfr_add(mpfr_result_512, number1_512, number2_512, MPFR_RNDF); // Setting it to faithful rounding makes it no longer fail
+			mpfr_add(mpfr_result_512, number1_512, number2_512, MPFR_RNDZ); // Setting it to faithful rounding makes it no longer fail
 			//end = clock();
 			clock_gettime(CLOCK_MONOTONIC, &wall_end);
 			diff_seconds = time_diff(&wall_start, &wall_end); 
@@ -229,7 +325,7 @@ int main()
 
 			//start = clock();
 			clock_gettime(CLOCK_MONOTONIC, &wall_start);
-			avxmpfr_add_512(avxmpfr_result_512, number1_512, number2_512, MPFR_RNDF, PRECISION_512);
+			avxmpfr_add_512(avxmpfr_result_512, number1_512, number2_512, MPFR_RNDZ, PRECISION_512);
 			//end = clock();
 			clock_gettime(CLOCK_MONOTONIC, &wall_end);
 			diff_seconds = time_diff(&wall_start, &wall_end); 
