@@ -40,5 +40,6 @@ void hexdump_m512i(const __m512i values, const char* name)
 // POSIX wall clock time comparison
 double time_diff(struct timespec *start, struct timespec *end)
 {
-    return difftime(end->tv_sec, start->tv_sec) + (end->tv_nsec - start->tv_nsec) / 1e9;
+    //return difftime(end->tv_sec, start->tv_sec) + (end->tv_nsec - start->tv_nsec) / 1e9;
+    return (end->tv_sec - start->tv_sec) + (double)(end->tv_nsec - start->tv_nsec) / 1e9;
 }
