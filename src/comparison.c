@@ -20,7 +20,7 @@ void assign_binary(char* binNum)
     for (int i = 0; i < size - 1; i++)
     {
 	if (i == pointLocation)
-	    binNum[190] = '1';
+	    binNum[190] = '.';
 	else
 	    binNum[i] = '0' + (rand() % 2); // Clamp to char 0 or 1 
     }
@@ -237,7 +237,7 @@ int main(int argc, char* argv[])
     char debug = 0;			// If debug is 1 print out the variables and limbs
     if (argc > 2)
 	debug = atoi(argv[2]) == 0 ? 0 : 1;
-    uint64_t iterations = 1<<20;	// 1<<20 in actual timing cases 
+    uint64_t iterations = 1;	// 1<<20 in actual timing cases 
     char OVERFLOW_TEST = 0; 		// Nail bits test case 
     char NO_OVERFLOW_TEST = 0;		// No nail bits test case
 

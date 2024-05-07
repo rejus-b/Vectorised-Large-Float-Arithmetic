@@ -15,13 +15,26 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint1
     */
 
     // First allign the exponents of the numbers to be added and set rop exponent
+    struct timespec align_start, align_end;
+    clock_gettime(CLOCK_MONOTONIC, &align_start);
     rop->_mpfr_exp = avxmpfr_exp_allign(op1, op2, PRECISION);
+    clock_gettime(CLOCK_MONOTONIC, &align_end);
+    
+    double align_time = time_diff(&align_start, &align_end);
+    printf("\nAlign Time: %.16f\t\n", align_time);
 
 //    mp_limb_t *limbs = (mp_limb_t *)op1->_mpfr_d; 
 //    print_binary(limbs, PRECISION_256);
 
     // Now pad the limbs of these numbers
+    struct timespec pad_start, pad_end;
+    clock_gettime(CLOCK_MONOTONIC, &pad_start);
     op1->_mpfr_d = avxmpfr_pad252(op1);
+    clock_gettime(CLOCK_MONOTONIC, &pad_end);
+    
+    double pad_time = time_diff(&pad_start, &pad_end);
+    printf("Pad Time: %.16f\t\n", pad_time);
+
     op2->_mpfr_d = avxmpfr_pad252(op2);
 
 //    printf("\n");
@@ -57,7 +70,14 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint1
 
 
     // Now you can add these
+    struct timespec rstart, rend;
+    clock_gettime(CLOCK_MONOTONIC, &rstart);
     __m256i_u rop_avx = avx_add(op1_avx, op2_avx, &(rop)->_mpfr_exp);
+    clock_gettime(CLOCK_MONOTONIC, &rend);
+    
+    double time = time_diff(&rstart, &rend);
+    printf("AVX Time: %.16f\t\n", time);
+
 //    printf("\n\n final exp is %ld \n\n", rop->_mpfr_exp); 
     
 //    printf("\n");
@@ -78,7 +98,13 @@ void avxmpfr_add(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const uint1
 //    print_binary(limbs, PRECISION_256);
      
     // Finally unpad rop
+    struct timespec unpad_start, unpad_end;
+    clock_gettime(CLOCK_MONOTONIC, &unpad_start);
     rop->_mpfr_d = avxmpfr_unpad252(rop);
+    clock_gettime(CLOCK_MONOTONIC, &unpad_end);
+    
+    double unpad_time = time_diff(&unpad_start, &unpad_end);
+    printf("Unpad Time: %.16f\t", unpad_time);
 
 //    printf("\n");
 //    printf("\n");
@@ -143,7 +169,13 @@ void avxmpfr_add_512(mpfr_t rop, mpfr_t op1, mpfr_t op2, mpfr_rnd_t rnd, const u
 					
 
     // Now you can add these
+    struct timespec rstart, rend;
+    clock_gettime(CLOCK_MONOTONIC, &rstart);
     __m512i_u rop_avx = avx_add_512i(op1_avx, op2_avx, &(rop)->_mpfr_exp);
+    clock_gettime(CLOCK_MONOTONIC, &rend);
+    
+    double time = time_diff(&rstart, &rend);
+    printf("AVX512 Time: %.16f\n", time);
 	
     // Now assign them to the actual rop
 		rop->_mpfr_d[0] = rop_avx[7];
