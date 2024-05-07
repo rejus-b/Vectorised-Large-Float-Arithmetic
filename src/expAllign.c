@@ -50,7 +50,7 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
     // If a difference of 64 or less, shift directly
     if (expDifference <= 64)
     {
-		mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, 4,  expDifference);
+		mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
 
 		// Now set the exponent to the shifted value
 		(firstNum)->_mpfr_exp += expDifference;
@@ -64,13 +64,13 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
 
 	while (expDifference > 64)
 	{
-	    mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, 4, 64);
+	    mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, 64);
 	    expDifference -= 64;
 	    limbShiftCount++;	
 	}
 
 	// The difference should now be less than or equal to 64
-	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, 4, expDifference);
+	mpn_rshift((firstNum)->_mpfr_d, (firstNum)->_mpfr_d, (PRECISION + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS, expDifference);
 
 	// Now set the exponent to the shifted value
 	(firstNum)->_mpfr_exp += GMP_NUMB_BITS * limbShiftCount + expDifference;
