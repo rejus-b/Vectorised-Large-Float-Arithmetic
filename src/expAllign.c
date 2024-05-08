@@ -45,7 +45,7 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
     /* Now to move onto actually shifting */
 	
 
-#define AVX_SHIFT 1
+//#define AVX_SHIFT 1
 
 #ifdef AVX_SHIFT
     // Check first if shift is equal to or less than 64 bits
@@ -63,6 +63,10 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
 					
     if (expDifference <= 64)
     {
+		
+		//avx_first_num = _mm256_or_si256 ( _mm256_slli_epi64 ( a, n ), _mm256_blend_epi32 ( _mm256_setzero_si256 ( ), _mm256_permute4x64_epi64 ( _mm256_srli_epi64 ( a, 64 - n ), _MM_SHUFFLE ( 2, 1, 0, 0 ) ), _MM_SHUFFLE ( 3, 3, 3, 0 ) ) );
+		
+		
 		// First mask out the low bits
 		__m256i_u last_bit_mask = _mm256_set1_epi64x(expDifference);
 		__m256i_u last_bit = _mm256_and_si256(avx_first_num, last_bit_mask);
@@ -72,7 +76,7 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
 
 		
 		// Shift the bit right across lanes.
-		__m256i_u top_bit = _mm256_sll_epi64(last_bit, _mm_cvtsi32_si128(64-expDifference));
+		__m256i_u top_bit = _mm256_sll_epi64(last_bit, _mm_cvtsi32_si128(64-expDifference - 2)); // -1 for carry bit?
 		
 			//			// Shift the first lane of top bits by expDif bits
 			//			__m256i shifted_lane = _mm256_srli_epi64(_mm256_and_si256(data, top_lane_mask), expDifference);
@@ -82,20 +86,29 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
 							top_bit[0],
 							top_bit[0] - expDifference);	// First lane is right shifted by expDifference
 							
-		avx_first_num = _mm256_srl_epi64(avx_first_num, _mm_cvtsi32_si128(expDifference));	// Shift each lane right by expDiff
+		avx_first_num = _mm256_srl_epi64(avx_first_num, _mm_cvtsi32_si128(expDifference - 2));	// Shift each lane right by expDiff
 		avx_first_num = _mm256_or_si256(avx_first_num, top_bit);
+		
+		firstNum->_mpfr_d[0] = avx_first_num[3];
+		firstNum->_mpfr_d[1] = avx_first_num[2];
+		firstNum->_mpfr_d[2] = avx_first_num[1];
+		firstNum->_mpfr_d[3] = avx_first_num[0];
 		
 		// Now set the exponent to the shifted value
 		(firstNum)->_mpfr_exp += expDifference;
+		
+		printf("I am here and working nerd");
 	}
     // If a difference of greater than 64
     else if (expDifference > 64) 
     {
+		printf("NOT HERE NERD\n");
 		// Keep track of total times a whole limb has shifted
 		int limbShiftCount = 0;
 
 		while (expDifference > 64)
 		{
+			printf("TRIPLE SHIFTERD FATALITY\n");
 			// First mask out the low bits
 			__m256i_u last_bit_mask = _mm256_set1_epi64x(expDifference);
 			__m256i_u last_bit = _mm256_and_si256(avx_first_num, last_bit_mask);
@@ -129,7 +142,10 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
 		avx_first_num = _mm256_or_si256(avx_first_num, top_bit);
 
 		// Now set the exponent to the shifted value
+		printf("Final exp is %ld\n", (firstNum)->_mpfr_exp + GMP_NUMB_BITS * limbShiftCount + expDifference);
 		(firstNum)->_mpfr_exp += GMP_NUMB_BITS * limbShiftCount + expDifference;
+		
+		printf("\tIran I swear\n");
     }
 
 #endif

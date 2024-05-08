@@ -20,7 +20,7 @@ void assign_binary(char* binNum)
     for (int i = 0; i < size - 1; i++)
     {
 	if (i == pointLocation)
-	    binNum[190] = '.';
+	    binNum[i] = '.';
 	else
 	    binNum[i] = '0' + (rand() % 2); // Clamp to char 0 or 1 
     }
