@@ -76,7 +76,7 @@ mpfr_exp_t avxmpfr_exp_allign(mpfr_t firstNum, mpfr_t secondNum, const uint16_t 
 
 		
 		// Shift the bit right across lanes.
-		__m256i_u top_bit = _mm256_sll_epi64(last_bit, _mm_cvtsi32_si128(64-expDifference - 2)); // -1 for carry bit?
+		__m256i_u top_bit = _mm256_sll_epi64(last_bit, _mm_cvtsi32_si128(64-expDifference - 2)); // -1 for carry bit? wait no this is pre nail bit
 		
 			//			// Shift the first lane of top bits by expDif bits
 			//			__m256i shifted_lane = _mm256_srli_epi64(_mm256_and_si256(data, top_lane_mask), expDifference);
