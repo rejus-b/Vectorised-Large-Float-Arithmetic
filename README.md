@@ -21,7 +21,7 @@ There is future potential for work including different arithmetic operations and
 # Documentation
 Refer to the [report](UGR_Project.pdf) as the main documentation for the choices and style of the project. Code is commented as much as possible to be made clear in use, however, where time was limited some comments may be missing or otherwise incoherent. 
 
-The prototype requires some user editting in 'comparison.c' depending on what features you want to compare. Otherwise follow the following make instructions.
+The prototype requires some user editting in [comparison.c](src/comparison.c) depending on what features you want to compare. Otherwise follow the following make instructions.
 
 ```
 make comparison
